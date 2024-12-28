@@ -1,0 +1,102 @@
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+
+const sendPasswordResetEmail = async (req, res) => {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      const resetToken = crypto.randomBytes(8).toString('hex');
+      const resetTokenExpiry = Date.now() + 3600000;
+  
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = resetTokenExpiry;
+      await user.save();
+  
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: "contact.skillswap@gmail.com",
+          pass: "mtmstfcenrryopyi",
+        },
+      });
+  
+      const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+  
+      const mailOptions = {
+        from: "contact.skillswap@gmail.com",
+        to: email,
+        subject: 'Password Reset Request',
+        html: `
+          <html>
+            <body style="font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #e9eff1;">
+              <div style="max-width: 650px; margin: 50px auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);">
+                <header style="text-align: center; margin-bottom: 20px;">
+                  <h1 style="font-size: 32px; color: #333; margin: 0;">NewsDroid</h1>
+                  <p style="font-size: 18px; color: #888; margin: 5px 0 0;">Password Reset Request</p>
+                </header>
+                <section style="padding: 20px; background-color: #f9f9f9; border-radius: 8px; margin-bottom: 30px;">
+                  <p style="color: #333; font-size: 16px; line-height: 1.5;">Hello,</p>
+                  <p style="color: #555; font-size: 16px; line-height: 1.5;">We received a request to reset your password. If you made this request, click the button below to reset your password.</p>
+                  <p style="text-align: center; margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color:rgb(84, 175, 76); color: #ffffff; padding: 16px 30px; font-size: 18px; text-decoration: none; border-radius: 5px; display: inline-block; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">Reset Password</a>
+                  </p>
+                  <p style="color: #888; font-size: 14px; text-align: center;">This link will expire in 1 hour for security purposes.</p>
+                </section>
+                <footer style="text-align: center; font-size: 14px; color: #777;">
+                  <p>If you did not request a password reset, please ignore this email or <a href="#" style="color: #4CAF50; text-decoration: none;">contact support</a>.</p>
+                  <p style="margin-top: 20px;">&copy; 2024 NewsDroid. All rights reserved.</p>
+                </footer>
+              </div>
+            </body>
+          </html>
+        `,
+      };
+  
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Error sending email' });
+        }
+        return res.status(200).json({ message: 'Password reset email sent successfully' });
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = {
+    sendPasswordResetEmail,
+    resetPassword
+};
