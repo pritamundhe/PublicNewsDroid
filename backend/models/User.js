@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema({
     },
     preferences: {
         categories: [{ type: String }],
-        language: { type: String, default: 'en'},
+        language: { type: String, default: 'en' },
     },
     savedArticles: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -43,7 +43,12 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    
+    resetPasswordToken: {
+        type: String
+    },
+    resetPasswordExpires: {
+        type: Date
+    }
 });
 
-module.exports = mongoose.model('User',UserSchema);
+module.exports = mongoose.model('User', UserSchema);
