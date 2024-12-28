@@ -4,7 +4,7 @@
   "description": "*Public News Droid* is a local news platform where users share updates moderated by AI to filter offensive content. Approved news is geotagged and shared within the community, ensuring relevance. It offers real-time updates, location-based distribution, and a safe space for hyper-local engagement.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +12,7 @@
   "dependencies": {
     "aws-sdk": "^2.1692.0",
     "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
