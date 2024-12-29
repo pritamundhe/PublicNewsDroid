@@ -2,3 +2,4 @@
 ai_model
 uploads
 node_modules
+.env
