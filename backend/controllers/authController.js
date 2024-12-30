@@ -105,9 +105,19 @@ const register = async (req, res) => {
   try {
       const { username, email, password } = req.body;
 
-      const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ 
+        $or: [
+          { email: email },
+          { username: username }
+        ] 
+      });
+      
       if (existingUser) {
-          return res.status(400).json({ message: 'User already exists' });
+        if (existingUser.email === email) {
+          return res.status(400).json({ message: 'Email already exists' });
+        } else if (existingUser.username === username) {
+          return res.status(400).json({ message: 'Username already exists' });
+        }
       }
 
       const salt = await bcrypt.genSalt(10);
@@ -128,36 +138,6 @@ const register = async (req, res) => {
   }
 };
 
-
-// const register = async (req, res) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res.status(400).json({ errors: errors.array() })
-//   }
-
-//   const { username, email, password } = req.body;
-
-//   try {
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "Email already in use." })
-//     }
-
-//     // const salt = await bcrypt.genSalt(10);
-//     // const hashpassword = await bcrypt.hash(password, salt);
-
-//     const newUser = new User({
-//       username,
-//       email,
-//       password //: hashpassword
-//     })
-
-//     await newUser.save();
-//   }
-//   catch (error) {
-//     res.status(500).json({ message: 'Server error', error });
-//   }
-// }
 
 const login = async (req, res) => {
   const errors = validationResult(req);
@@ -198,4 +178,6 @@ module.exports = {
   resetPassword,
   register,
   login
+};
+
 };
