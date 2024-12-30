@@ -2,37 +2,41 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const dotenv=require("dotenv");
+const { validationResult } = require('express-validator'); //for validating requests
+dotenv.config();
 
 const sendPasswordResetEmail = async (req, res) => {
-    const { email } = req.body;
-    try {
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-  
-      const resetToken = crypto.randomBytes(8).toString('hex');
-      const resetTokenExpiry = Date.now() + 3600000;
-  
-      user.resetPasswordToken = resetToken;
-      user.resetPasswordExpires = resetTokenExpiry;
-      await user.save();
-  
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: "contact.skillswap@gmail.com",
-          pass: "mtmstfcenrryopyi",
-        },
-      });
-  
-      const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
-  
-      const mailOptions = {
-        from: "contact.skillswap@gmail.com",
-        to: email,
-        subject: 'Password Reset Request',
-        html: `
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const resetToken = crypto.randomBytes(8).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000;
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiry;
+    await user.save();
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: "contact.skillswap@gmail.com",
+        pass: "mtmstfcenrryopyi",
+      },
+    });
+
+    const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+
+    const mailOptions = {
+      from: "contact.skillswap@gmail.com",
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
           <html>
             <body style="font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #e9eff1;">
               <div style="max-width: 650px; margin: 50px auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);">
@@ -56,20 +60,20 @@ const sendPasswordResetEmail = async (req, res) => {
             </body>
           </html>
         `,
-      };
-  
-      transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ message: 'Error sending email' });
-        }
-        return res.status(200).json({ message: 'Password reset email sent successfully' });
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
+    };
+
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Error sending email' });
+      }
+      return res.status(200).json({ message: 'Password reset email sent successfully' });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 const resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
@@ -87,7 +91,7 @@ const resetPassword = async (req, res) => {
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    await user.save();
+    await user.save(); 
 
     res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
@@ -96,7 +100,102 @@ const resetPassword = async (req, res) => {
   }
 };
 
+
+const register = async (req, res) => {
+  try {
+      const { username, email, password } = req.body;
+
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          return res.status(400).json({ message: 'User already exists' });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashpassword = await bcrypt.hash(password, salt);
+
+      const newUser = new User({
+          username,
+          email,
+          password: hashpassword,
+      });
+
+      await newUser.save();
+      res.status(201).json({ message: 'User registered successfully' });
+
+  } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// const register = async (req, res) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//     return res.status(400).json({ errors: errors.array() })
+//   }
+
+//   const { username, email, password } = req.body;
+
+//   try {
+//     const existingUser = await User.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ message: "Email already in use." })
+//     }
+
+//     // const salt = await bcrypt.genSalt(10);
+//     // const hashpassword = await bcrypt.hash(password, salt);
+
+//     const newUser = new User({
+//       username,
+//       email,
+//       password //: hashpassword
+//     })
+
+//     await newUser.save();
+//   }
+//   catch (error) {
+//     res.status(500).json({ message: 'Server error', error });
+//   }
+// }
+
+const login = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email })
+    if (!user) {
+      return res.status(400).json({ message: "User email does not exist." })
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid password' });
+    }
+
+    const token = jwt.sign({
+      id: user._id,
+      role: user.role,
+    },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h', }
+    )
+
+    res.json({ token, user: { id: user._id, username: user.username, role: user.role } });
+  }
+  catch(error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+}
+
 module.exports = {
-    sendPasswordResetEmail,
-    resetPassword
+  sendPasswordResetEmail,
+  resetPassword,
+  register,
+  login
 };
