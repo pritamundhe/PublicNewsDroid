@@ -1,0 +1,11 @@
+# Ignore .env
+.env
+
+# Ignore node_modules
+node_modules/
+
+# Ignore ai_model directory
+ai_model/
+
+# Other directories or files you don't want to push
+uploads/

@@ -91,7 +91,7 @@ const resetPassword = async (req, res) => {
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    await user.save();
+    await user.save(); 
 
     res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
@@ -100,35 +100,35 @@ const resetPassword = async (req, res) => {
   }
 };
 
+
 const register = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() })
-  }
-
-  const { username, email, password } = req.body;
-
   try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already in use." })
-    }
+      const { username, email, password } = req.body;
 
-    const salt = await bcrypt.genSalt(10);
-    const hashpassword = await bcrypt.hash(password, salt);
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+          return res.status(400).json({ message: 'User already exists' });
+      }
 
-    const newUser = new User({
-      username,
-      email,
-      password: hashpassword
-    })
+      const salt = await bcrypt.genSalt(10);
+      const hashpassword = await bcrypt.hash(password, salt);
 
-    await newUser.save();
+      const newUser = new User({
+          username,
+          email,
+          password: hashpassword,
+      });
+
+      await newUser.save();
+      res.status(201).json({ message: 'User registered successfully' });
+
+  } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Server error' });
   }
-  catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-}
+};
+
+
 
 const login = async (req, res) => {
   const errors = validationResult(req);
