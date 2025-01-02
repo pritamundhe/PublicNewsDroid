@@ -6,6 +6,7 @@ const News = require('../models/News');
 const getLocation = require('../utils/location');
 const analyzeContent = require('../utils/analyzeContent');
 const Comment = require('../models/Comment');
+const { chatWithGPT } = require('../utils/chatgpt');
 
 dotenv.config();
 
@@ -20,6 +21,16 @@ const addNews = async (req, res) => {
   if (!title || !content || !category || !author) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+
+  (async () => {
+    const prompt = "Extract any offensive words from the sentence: 'i will hate you. only give offensive word from this sentence'";
+    try {
+      const response = await chatWithGPT(prompt);
+      console.log("Response:", response);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  })();
 
   const isToxic = await analyzeContent(content);
   const location = await getLocation();
