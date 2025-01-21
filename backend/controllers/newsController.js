@@ -7,6 +7,7 @@ const getLocation = require('../utils/location');
 const analyzeContent = require('../utils/analyzeContent');
 const Comment = require('../models/Comment');
 const { chatWithGPT } = require('../utils/chatgpt');
+const { getLocationFromIPAPI } = require('../utils/getLoc');
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ const addNews = async (req, res) => {
 
   const isToxic = await analyzeContent(content);
   const location = await getLocation();
+  console.log(location);
   const contentStatus = isToxic ? 'Rejected' : 'Approved';
 
   const newNews = new News({
