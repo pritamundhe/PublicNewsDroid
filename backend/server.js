@@ -10,7 +10,7 @@ const PORT=5000;
 
 app.use(cors());
 dotenv.config();
-app.use(express.json()); // Parses incoming JSON requests
+app.use(express.json()); 
 
 
 const MONGO_URL=process.env.MONGO_URL;
