@@ -76,10 +76,6 @@ const addNews = async (req, res) => {
   }
 };
 
-
-
-
-
 const commentController = {
 
     // Create a new comment
@@ -237,13 +233,66 @@ const commentController = {
     },
 };
 
+// Admin Approve or Reject News
+const updateNewsStatus = async (req, res) => {
+    const { id, status, reviewComment } = req.body;
+  
+    if (!id || !['Approved', 'Rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid input' });
+    }
+  
+    try {
+      const updatedNews = await News.findByIdAndUpdate(
+        id,
+        { 
+          status, 
+          reviewComment: status === 'Rejected' ? reviewComment || 'No comment provided' : '' 
+        },
+        { new: true }
+      );
+  
+      if (!updatedNews) {
+        return res.status(404).json({ error: 'News not found' });
+      }
+  
+      res.status(200).json(updatedNews);
+    } catch (error) {
+      console.error('Error updating news status:', error);
+      res.status(500).send('Server error');
+    }
+  };
 
-
-
-
+  const fetchNews = async (req, res) => {
+    const { category, location, latitude, longitude, keywords, startDate, endDate, source } = req.query;
+    const filter = {};
+  
+    if (category) filter.category = category;
+    if (location) filter['location.city'] = location;
+    if (latitude && longitude) {
+      filter['location.latitude'] = parseFloat(latitude);
+      filter['location.longitude'] = parseFloat(longitude);
+    }
+    if (keywords) filter.content = { $regex: keywords, $options: 'i' };
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+    if (source) filter.author = source;
+  
+    try {
+      const newsArticles = await News.find(filter).sort({ createdAt: -1 });
+      res.status(200).json(newsArticles);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      res.status(500).send('Server error');
+    }
+  }; 
 
 
 module.exports = {
   addNews,
   commentController,
+  updateNewsStatus,
+  fetchNews
 };
