@@ -1,18 +1,16 @@
 const axios = require('axios');
 
-const getLocationFromIPAPI = async () => {
+const getGeoLocation = async () => {
   try {
-    const response = await axios.get('http://ip-api.com/json', { timeout: 10000 });
+    const response = await axios.get('https://get.geojs.io/v1/ip/geo.json', {
+      timeout: 10000,
+    });
 
-    const { lat, lon } = response.data;
-    return {
-      latitude: parseFloat(lat).toFixed(8),
-      longitude: parseFloat(lon).toFixed(8),
-    };
+    return response.data;
   } catch (error) {
-    console.error('Error fetching location from IP-API:', error.message);
-    return { latitude: null, longitude: null };
+    console.error('Error fetching geolocation:', error.message);
+    return null;
   }
 };
 
-module.exports = getLocationFromIPAPI;
+module.exports = getGeoLocation;

@@ -3,17 +3,18 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const News = require('../models/News');
+const User = require('../models/User');
 const getLocation = require('../utils/location');
 const analyzeContent = require('../utils/analyzeContent');
 const Comment = require('../models/Comment');
-const { chatWithGPT } = require('../utils/chatgpt');
-const { getLocationFromIPAPI } = require('../utils/getLoc');
+const getGeoLocation = require('../utils/getLoc');
+const nodemailer = require('nodemailer');
+
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
-
 
 
 const addNews = async (req, res) => {
@@ -22,20 +23,12 @@ const addNews = async (req, res) => {
   if (!title || !content || !category || !author) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-
-  (async () => {
-    const prompt = "Extract any offensive words from the sentence: 'i will hate you. only give offensive word from this sentence'";
-    try {
-      const response = await chatWithGPT(prompt);
-      console.log("Response:", response);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  })();
-
+  const user = await User.findById(author);
   const isToxic = await analyzeContent(content);
-  const location = await getLocation();
+  const location = await getGeoLocation();
+  console.log(user.username);
   console.log(location);
+  
   const contentStatus = isToxic ? 'Rejected' : 'Approved';
 
   const newNews = new News({
@@ -66,8 +59,69 @@ const addNews = async (req, res) => {
     flaggedReason: isToxic ? 'Offensive Content' : '',
     status: contentStatus,
   });
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: "contact.skillswap@gmail.com",
+        pass: "mtmstfcenrryopyi",
+    },
+  });
+
+  const mailOptions = {
+    from: "contact.skillswap@gmail.com",
+    to: "pritammundhe00@gmail.com", // User's email dynamically fetched
+    subject: "Offensive Language Detected in News Submission",
+    html: `
+        <html>
+            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f4f4f4; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table role="presentation" width="600px" cellspacing="0" cellpadding="0" border="0" style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                                <tr>
+                                    <td align="center">
+                                        <h2 style="color: #e63946; margin-bottom: 10px;">⚠ Offensive Language Detected</h2>
+                                        <p style="color: #333; font-size: 16px; line-height: 1.6;">Your recent news submission has been flagged for offensive content.</p>
+                                        <hr style="border: 0; height: 1px; background: #ddd; margin: 20px 0;">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #1d3557; margin-bottom: 5px;">📌 News Title:</h3>
+                                        <p style="padding: 10px; border-radius: 5px; font-size: 16px; color: #333;">${title}</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #1d3557; margin-bottom: 5px;">👤 Added by:</h3>
+                                        <p style="padding: 10px; border-radius: 5px; font-size: 16px; color: #333;">${user.username}</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 20px;">
+                                        <p style="color: #666; font-size: 14px;">If you believe this is a mistake, please contact support.</p>
+                                        <a href="mailto:support@skillswap.com" style="display: inline-block; background: #e63946; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;">Contact Support</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+        </html>
+    `
+};
 
   try {
+    if(isToxic){
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({message: 'Error sending email'});
+            }
+            return res.status(200).json({message: 'Email sent successfully'});
+        });
+    }
     const savedNews = await newNews.save();
     res.status(201).json(savedNews);
   } catch (error) {

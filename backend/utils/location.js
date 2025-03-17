@@ -21,4 +21,4 @@ const getLocation = async (address) => {
   }
 };
 
-getLocation('New York').then(console.log);
+getLocation('Pune').then(console.log);
