@@ -6,6 +6,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const userRoutes = require('./routes/authRoutes');
 const newsRoutes=require('./routes/newsRoutes');
+const adminRoutes=require('./routes/adminRoutes');
 
 const app=express();
 const server = http.createServer(app);
@@ -43,8 +44,7 @@ io.on('connection', (socket) => {
     });
 });
 
-
-
+app.use('/admin', adminRoutes);
 app.use('/users', userRoutes);
 app.use('/news', newsRoutes);
 
