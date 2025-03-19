@@ -37,6 +37,10 @@ const NewsSchema = new mongoose.Schema({
     country: String,
     region: String,
   },
+  keywords: {
+    type: [String],  // Array of strings to store keywords
+    validate: [arrayLimit, '{PATH} exceeds the limit of 3']  // Ensure only 3 keywords
+  },
   flaggedByAI: Boolean,
   flaggedReason: String,
   status: {
@@ -45,6 +49,11 @@ const NewsSchema = new mongoose.Schema({
     default: 'Pending',
   },
 }, { timestamps: true });
+
+// Custom validation to allow a max of 3 keywords
+function arrayLimit(val) {
+  return val.length <= 3;
+}
 
 const News = mongoose.model('News', NewsSchema);
 
