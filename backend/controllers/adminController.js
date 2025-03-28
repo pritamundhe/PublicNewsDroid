@@ -77,6 +77,8 @@ const getNewsAnalytics = async (req, res) => {
     }
 };
 
+
+
 module.exports = {
     getAllUsers,
     deactivateUser,
