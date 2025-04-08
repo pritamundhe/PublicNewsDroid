@@ -173,10 +173,22 @@ const login = async (req, res) => {
   }
 }
 
+const updateUserFcmToken = async (req, res) => {
+  const { userId, fcmToken } = req.body;
+
+  try {
+      await User.findByIdAndUpdate(userId, { fcmToken });
+      res.status(200).json({ message: "FCM Token Updated" });
+  } catch (error) {
+      res.status(500).json({ error: "Failed to update token" });
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
   resetPassword,
   register,
-  login
+  login,
+  updateUserFcmToken
 };
 
