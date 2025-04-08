@@ -34,7 +34,7 @@ const Home = () => {
                 <div className="flex space-x-4">
                     <a href="#" className="text-gray-500">Search</a>
                     <a href="#" className="text-gray-500">Login</a>
-                    <a href="/subscription" className="bg-red-500 text-white px-4 py-1">Subscribe</a>
+                    <a href="#" className="bg-red-500 text-white px-4 py-1">Subscribe</a>
                 </div>
             </header>
 
