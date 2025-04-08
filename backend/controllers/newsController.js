@@ -22,10 +22,20 @@ app.use(express.json());
 const fs = require("fs");
 
 const addNews = async (req, res) => {
-  const { title, content, category, author } = req.body;
+  const { title, content, category, author, images, videos } = req.body;
 
   if (!title || !content || !category || !author) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Function to calculate a region code based on 10km radius
+  function getRegionCode(lat, lon) {
+    const RADIUS_KM = 10;
+    const latStep = RADIUS_KM / 111; // ≈ 0.09 degrees
+    const lonStep = RADIUS_KM / (111 * Math.cos(lat * Math.PI / 180)); // Adjust for curvature
+    const latRegion = Math.floor(lat / latStep);
+    const lonRegion = Math.floor(lon / lonStep);
+    return latRegion * 100000 + lonRegion;
   }
 
   try {
@@ -34,10 +44,7 @@ const addNews = async (req, res) => {
       return res.status(400).json({ error: "Invalid author ID. User not found." });
     }
 
-    const isToxic = await analyzeContent(content).catch((err) => {
-      console.error("Error analyzing content:", err);
-      return false;
-    });
+    const keywords = extractedKeywords.map(item => item.tag);
 
     const location = await getGeoLocation().catch((err) => {
       console.error("Error getting location:", err);
@@ -49,7 +56,6 @@ const addNews = async (req, res) => {
       return [];
     });
 
-    const keywords = extractedKeywords.map((item) => item.tag);
     const contentStatus = isToxic ? "Rejected" : "Approved";
 
     let imageUrls = [];
@@ -57,8 +63,6 @@ const addNews = async (req, res) => {
 
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       try {
-
-
         const uploadPromises = req.files.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "news",
@@ -80,6 +84,11 @@ const addNews = async (req, res) => {
         return res.status(500).json({ success: false, message: "Failed to upload media" });
       }
     }
+
+    // 🧠 Generate region code based on lat/lon
+    const latitude = parseFloat(location.latitude || "0");
+    const longitude = parseFloat(location.longitude || "0");
+    const regionCode = getRegionCode(latitude, longitude);
 
     const newNews = new News({
       title,
@@ -105,50 +114,66 @@ const addNews = async (req, res) => {
         country: location.country || "",
         region: location.region || "",
       },
+      code: regionCode,
       keywords,
       flaggedByAI: isToxic,
       flaggedReason: isToxic ? "Offensive Content" : "",
       status: contentStatus,
+      code: regionCode, // ✅ region code based on 10km circle
     });
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: "contact.skillswap@gmail.com",
+        pass: "mtmstfcenrryopyi",
+      },
+    });
+
+    const mailOptions = {
+      from: "contact.skillswap@gmail.com",
+      to: "pritammundhe00@gmail.com",
+      subject: "Offensive Language Detected in News Submission",
+      html: `
+            <html>
+                <body>
+                    <h2>⚠ Offensive Language Detected</h2>
+                    <p>Your recent news submission has been flagged for offensive content.</p>
+                    <h3>📌 News Title:</h3>
+                    <p>${title}</p>
+                    <h3>👤 Added by:</h3>
+                    <p>${user.username}</p>
+                    <p>If you believe this is a mistake, please contact support.</p>
+                    <a href="mailto:support@skillswap.com">Contact Support</a>
+                </body>
+            </html>
+        `
+    };
+
+    if (isToxic) {
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'Error sending email' });
+        }
+        return res.status(200).json({ message: 'Email sent successfully' });
+      });
+    }
 
     const savedNews = await newNews.save();
 
     if (isToxic) {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: "pritammundhe00@gmail.com",
-        subject: "Offensive Language Detected in News Submission",
-        html: `
-              <html>
-                  <body>
-                      <h2>⚠ Offensive Language Detected</h2>
-                      <p>Your recent news submission has been flagged for offensive content.</p>
-                      <h3>📌 News Title:</h3>
-                      <p>${title}</p>
-                      <h3>👤 Added by:</h3>
-                      <p>${user.username}</p>
-                      <p>If you believe this is a mistake, please contact support.</p>
-                      <a href="mailto:support@skillswap.com">Contact Support</a>
-                  </body>
-              </html>
-          `,
-      };
-
-      transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-          console.error("Error sending email:", err);
+      const adminUsers = await User.find({ role: "admin" });
+      adminUsers.forEach(async (adminUser) => {
+        if (adminUser.fcmToken) {
+          await sendNotification(
+            adminUser.fcmToken,
+            "News Flagged",
+            `Review the flagged news: ${savedNews.title}`
+          );
         }
       });
-    }
-    else {
+    } else {
       const interestedUsers = await User.find({
         "preferences.categories": category,
         fcmToken: { $exists: true, $ne: null }

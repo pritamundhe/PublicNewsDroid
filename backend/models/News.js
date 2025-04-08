@@ -37,6 +37,10 @@ const NewsSchema = new mongoose.Schema({
     country: String,
     region: String,
   },
+  code:{
+    type: Number,
+    required: true
+  },
   keywords: {
     type: [String],  // Array of strings to store keywords
     validate: [arrayLimit, '{PATH} exceeds the limit of 3']  // Ensure only 3 keywords
