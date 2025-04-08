@@ -366,31 +366,22 @@ const updateNewsStatus = async (req, res) => {
 
     res.status(200).json(updatedNews);
   } catch (error) {
-    console.error("Error updating news status:", error);
-    res.status(500).send("Server error");
+    console.error('Error updating news status:', error);
+    res.status(500).send('Server error');
   }
 };
 
 const fetchNews = async (req, res) => {
-  const {
-    category,
-    location,
-    latitude,
-    longitude,
-    keywords,
-    startDate,
-    endDate,
-    source,
-  } = req.query;
+  const { category, location, latitude, longitude, keywords, startDate, endDate, source } = req.query;
   const filter = {};
 
   if (category) filter.category = category;
-  if (location) filter["location.city"] = location;
+  if (location) filter['location.city'] = location;
   if (latitude && longitude) {
-    filter["location.latitude"] = parseFloat(latitude);
-    filter["location.longitude"] = parseFloat(longitude);
+    filter['location.latitude'] = parseFloat(latitude);
+    filter['location.longitude'] = parseFloat(longitude);
   }
-  if (keywords) filter.content = { $regex: keywords, $options: "i" };
+  if (keywords) filter.content = { $regex: keywords, $options: 'i' };
   if (startDate || endDate) {
     filter.createdAt = {};
     if (startDate) filter.createdAt.$gte = new Date(startDate);
@@ -402,10 +393,13 @@ const fetchNews = async (req, res) => {
     const newsArticles = await News.find(filter).sort({ createdAt: -1 });
     res.status(200).json(newsArticles);
   } catch (error) {
-    console.error("Error fetching news:", error);
-    res.status(500).send("Server error");
+    console.error('Error fetching news:', error);
+    res.status(500).send('Server error');
   }
 };
+
+
+
 
 module.exports = {
   addNews,
