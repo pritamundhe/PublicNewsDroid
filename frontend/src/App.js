@@ -4,13 +4,14 @@ import Home from "./pages/Home";
 import Register from "./pages/Register";
 import { useEffect } from 'react';
 import io from 'socket.io-client';
+import { Toaster } from 'react-hot-toast';
 
 import Subscription from "./components/Subscription";
 import Signup from "./components/Authentication/SignUp";
 import Login from "./components/Authentication/Login";
 import NewsDetail from "./components/News/NewsDetails";
 import AdminDashboard from "./components/Admin/AdminDashboard";
-const socket = io('http://localhost:5000'); 
+const socket = io('http://localhost:5000');
 
 function App() {
   useEffect(() => {
@@ -23,11 +24,12 @@ function App() {
     });
 
     return () => {
-      socket.disconnect(); 
+      socket.disconnect();
     };
   }, []);
   return (
     <Router>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

@@ -4,10 +4,21 @@ import { FaRegCommentAlt } from "react-icons/fa";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import { IoPrintSharp } from "react-icons/io5";
-import { BiLike ,BiDislike } from "react-icons/bi";
+import { BiLike, BiDislike } from "react-icons/bi";
 import SmallNewsCover from "./SmallNewsCover";
+import { useState } from "react";
+import toast from 'react-hot-toast';
+
 
 export default function NewsDetail() {
+
+    const [showComments, setShowComments] = useState(false);
+    const [commentText, setCommentText] = useState('');
+    const [comments, setComments] = useState([
+        { username: 'Saurabh', time: '1 month ago', text: 'A wise decision by the Supreme Court..' },
+        { username: 'satasat', time: '1 month ago', text: 'The highest court should remember while expressing...' }
+    ]);
+
     return (
         <div>
             <Navbar />
@@ -31,11 +42,30 @@ export default function NewsDetail() {
                     <div className="flex justify-between mt-4 text-gray-600">
                         <div className="flex  gap-3 pl-3">
 
-                        <button className="hover:text-black"><CiShare1 size={24} /></button>
-                        <button className="hover:text-black"><FaRegCommentAlt size={18} /></button>
-                        
+                            <button
+                                onClick={() => {
+                                    if (navigator.share) {
+                                        navigator
+                                            .share({
+                                                title: document.title,
+                                                url: window.location.href,
+                                            })
+                                            .then(() => console.log("Shared successfully"))
+                                            .catch((err) => console.error("Share failed:", err));
+                                    } else {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        toast.success("Link copied to clipboard!");
+                                    }
+                                }}
+                                className="hover:text-black"
+                            >
+                                <CiShare1 size={24} />
+                            </button>
+
+                            <button className="hover:text-black" onClick={() => setShowComments(!showComments)}><FaRegCommentAlt size={18} /></button>
+
                         </div>
-                        <button className="hover:text-black pr-3 flex items-center"><IoPrintSharp size={20}/> Print</button>
+                        <button className="hover:text-black pr-3 flex items-center"><IoPrintSharp size={20} /> Print</button>
                     </div>
 
                     <div className=" mt-2">
@@ -47,9 +77,9 @@ export default function NewsDetail() {
                     </div>
                     <div className="flex justify-end mt-1 gap-3 text-gray-600 mb-8 pr-4">
 
-                        <button className="hover:text-red-500 text-black"><BiLike size={24}  /></button>
+                        <button className="hover:text-red-500 text-black"><BiLike size={24} /></button>
 
-                        <button className="hover:text-red-500 text-black"><BiDislike size={24}/></button>
+                        <button className="hover:text-red-500 text-black"><BiDislike size={24} /></button>
                     </div>
                     <div className="text-lg leading-relaxed">
                         <p className="mb-4">
@@ -57,13 +87,48 @@ export default function NewsDetail() {
                         </p>
                         <p className="mb-4">
                             Addressing a gathering in Ahmedabad, Kharge said, "There was almost daily correspondence between Nehru and Patel. Nehruji used to take his advice on all matters."
-                        
+
                             He added that Nehru had immense respect for Patel and followed his advice on matters of governance and administration.
                         </p>
                         <p className="mb-4">
                             The Congress leader also pointed out that it was Sardar Patel who had imposed a ban on the RSS following Mahatma Gandhi’s assassination.
                         </p>
                     </div>
+                    {showComments && (
+                        <div className="mt-8 border-t pt-4">
+                            <h3 className="text-xl font-semibold mb-4">Join the Conversation</h3>
+
+                            {/* Add comment box */}
+                            <textarea
+                                className="w-full border rounded p-2 mb-2"
+                                placeholder="Post a comment"
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                            />
+                            <button
+                                onClick={() => {
+                                    if (commentText.trim() !== '') {
+                                        setComments([{ username: 'You', time: 'Just now', text: commentText }, ...comments]);
+                                        setCommentText('');
+                                    }
+                                }}
+                                className="bg-black text-white px-4 py-2 rounded mb-6"
+                            >
+                                Post Comment
+                            </button>
+
+                            {/* Show comments */}
+                            <div>
+                                {comments.map((c, i) => (
+                                    <div key={i} className="mb-4 border-b pb-2">
+                                        <div className="font-semibold">{c.username}</div>
+                                        <div className="text-sm text-gray-500">{c.time}</div>
+                                        <p className="mt-1 text-gray-800">{c.text}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
 
                 </div>
