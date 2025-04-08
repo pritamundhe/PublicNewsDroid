@@ -408,6 +408,43 @@ const updateNewsStatus = async (req, res) => {
   }
 };
 
+const fetch = async (req, res) => {
+  const userid = req.query.userid;
+
+  try {
+    // Validate userid
+    if (!userid || typeof userid !== "string") {
+      return res.status(400).json({ message: "Invalid or missing userid" });
+    }
+
+    // 1. Find the user by ID
+    const user = await User.findById(userid);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2. Ensure the user has a code
+    const userCode = user.code;
+    console.log("Username:", user.username);
+    console.log("Region Code:", userCode);
+
+    if (userCode === undefined || userCode === null) {
+      return res.status(400).json({ message: "User does not have a valid region code" });
+    }
+
+    // 3. Fetch news with matching code
+    const news = await News.find({ code: userCode });
+
+    // 4. Return the news list
+    res.status(200).json({ success: true, news });
+  } catch (error) {
+    console.error("Error fetching news:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+
 const fetchNews = async (req, res) => {
   const { category, location, latitude, longitude, keywords, startDate, endDate, source } = req.query;
   const filter = {};
@@ -443,4 +480,5 @@ module.exports = {
   commentController,
   updateNewsStatus,
   fetchNews,
+  fetch
 };
