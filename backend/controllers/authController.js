@@ -103,7 +103,7 @@ const resetPassword = async (req, res) => {
 
 const register = async (req, res) => {
   try {
-      const { username, email, password } = req.body;
+      const { username, email, password ,location,preferences,} = req.body;
 
       const existingUser = await User.findOne({ 
         $or: [
@@ -127,6 +127,14 @@ const register = async (req, res) => {
           username,
           email,
           password: hashpassword,
+          location: {
+            lat: location?.lat,
+            lon: location?.lon,
+          },
+          preferences: {
+            categories: preferences?.categories || [],
+            language: preferences?.language || 'en',
+          },
       });
 
       await newUser.save();
