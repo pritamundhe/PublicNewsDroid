@@ -1,28 +1,33 @@
-const express = require('express');
-const axios = require('axios');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const News = require('../models/News');
-const User = require('../models/User');
-const getLocation = require('../utils/location');
-const analyzeContent = require('../utils/analyzeContent');
-const Comment = require('../models/Comment');
-const getGeoLocation = require('../utils/getLoc');
-const nodemailer = require('nodemailer');
-const classifyContent = require('../utils/chatgpt');
-
+const express = require("express");
+const axios = require("axios");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const News = require("../models/News");
+const User = require("../models/User");
+const getLocation = require("../utils/location");
+const analyzeContent = require("../utils/analyzeContent");
+const Comment = require("../models/Comment");
+const getGeoLocation = require("../utils/getLoc");
+const nodemailer = require("nodemailer");
+const classifyContent = require("../utils/chatgpt");
+const upload =require("../middleware/upload");
+const cloudinary=require("../config/cloudinary");
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
+// const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
 
 const addNews = async (req, res) => {
+
   const { title, content, category, author, images, videos } = req.body;
 
   if (!title || !content || !category || !author) {
     return res.status(400).json({ error: 'Missing required fields' });
+
   }
 
   try {
@@ -39,34 +44,64 @@ const addNews = async (req, res) => {
     console.log('Extracted Keywords:', keywords);
 
     const contentStatus = isToxic ? 'Rejected' : 'Approved';
+    
+    let imageUrls = [];
+    let videoUrls = [];
+
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      try {
+        
+
+        const uploadPromises = req.files.map(async (file) => {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "news",
+            resource_type: "auto",
+          });
+
+          if (file.mimetype.startsWith("image")) {
+            imageUrls.push(result.secure_url);
+          } else if (file.mimetype.startsWith("video")) {
+            videoUrls.push(result.secure_url);
+          }
+
+          await fs.promises.unlink(file.path);
+        });
+
+        await Promise.all(uploadPromises);
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({ success: false, message: "Failed to upload media" });
+      }
+    }
+
 
     const newNews = new News({
       title,
       content,
       category,
       author,
-      images,
-      videos,
+      images: imageUrls,
+      videos: videoUrls,
       location: {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        ip: location.ip,
-        timezone: location.timezone,
-        accuracy: location.accuracy,
-        city: location.city,
-        asn: location.asn,
-        organization: location.organization,
-        area_code: location.area_code,
-        organization_name: location.organization_name,
-        country_code: location.country_code,
-        country_code3: location.country_code3,
-        continent_code: location.continent_code,
-        country: location.country,
-        region: location.region,
+        latitude: location.latitude || "",
+        longitude: location.longitude || "",
+        ip: location.ip || "",
+        timezone: location.timezone || "",
+        accuracy: location.accuracy || 0,
+        city: location.city || "",
+        asn: location.asn || 0,
+        organization: location.organization || "",
+        area_code: location.area_code || "",
+        organization_name: location.organization_name || "",
+        country_code: location.country_code || "",
+        country_code3: location.country_code3 || "",
+        continent_code: location.continent_code || "",
+        country: location.country || "",
+        region: location.region || "",
       },
       keywords,
       flaggedByAI: isToxic,
-      flaggedReason: isToxic ? 'Offensive Content' : '',
+      flaggedReason: isToxic ? "Offensive Content" : "",
       status: contentStatus,
     });
 
@@ -229,6 +264,7 @@ const commentController = {
 
       // Validate commentId
       if (!commentId) {
+
         return res.status(400).json({ message: 'Comment ID is required.' });
       }
 
@@ -246,6 +282,7 @@ const commentController = {
 
   // Like a comment
   likeComment: async (req, res) => {
+
     try {
       const { commentId } = req.params;
 
@@ -258,6 +295,7 @@ const commentController = {
       const updatedComment = await Comment.findByIdAndUpdate(
         commentId,
         { $inc: { likes: 1 } },
+
         { new: true }
       );
 
@@ -304,6 +342,7 @@ const updateNewsStatus = async (req, res) => {
 
   if (!id || !['Approved', 'Rejected'].includes(status)) {
     return res.status(400).json({ error: 'Invalid input' });
+
   }
 
   try {
@@ -311,7 +350,9 @@ const updateNewsStatus = async (req, res) => {
       id,
       {
         status,
+
         reviewComment: status === 'Rejected' ? reviewComment || 'No comment provided' : ''
+
       },
       { new: true }
     );
@@ -355,9 +396,11 @@ const fetchNews = async (req, res) => {
 };
 
 
+
+
 module.exports = {
   addNews,
   commentController,
   updateNewsStatus,
-  fetchNews
+  fetchNews,
 };

@@ -1,8 +1,8 @@
 # Ignore .env
 .env
+publicnewsdroid-df382-firebase-adminsdk-fbsvc-5411935a19.json
 
-/backend/config/serviceAccountKey.json
-/backend/config/publicnewsdroid-df382-firebase-adminsdk-fbsvc-5411935a19.json
+/config/publicnewsdroid-df382-firebase-adminsdk-fbsvc-5411935a19.json
 # Ignore node_modules
 node_modules/
 
