@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
     const [news, setNews] = useState([]);
@@ -37,6 +38,7 @@ const Home = () => {
                     <a href="/subscription" className="bg-red-500 text-white px-4 py-1">Subscribe</a>
                 </div>
             </header>
+            
 
             {/* Navigation */}
             <nav className="font-inter bg-white border-b border-gray-200 py-2 px-4 flex justify-center space-x-4 overflow-x-auto">
