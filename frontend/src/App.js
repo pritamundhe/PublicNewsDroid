@@ -8,6 +8,7 @@ import Admin from "./pages/Admin";
 import Subscription from "./components/Subscription";
 import Signup from "./components/Authentication/SignUp";
 import Login from "./components/Authentication/Login";
+import NewsDetail from "./components/News/NewsDetails";
 const socket = io('http://localhost:5000'); 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/newsdetail" element={<NewsDetail />} />
       </Routes>
     </Router>
   );

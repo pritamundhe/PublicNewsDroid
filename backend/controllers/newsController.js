@@ -10,8 +10,8 @@ const Comment = require("../models/Comment");
 const getGeoLocation = require("../utils/getLoc");
 const nodemailer = require("nodemailer");
 const classifyContent = require("../utils/chatgpt");
-const upload =require("../middleware/upload");
-const cloudinary=require("../config/cloudinary");
+const upload = require("../middleware/upload");
+const cloudinary = require("../config/cloudinary");
 
 dotenv.config();
 
@@ -57,7 +57,7 @@ const addNews = async (req, res) => {
 
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       try {
-        
+
 
         const uploadPromises = req.files.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
@@ -152,7 +152,7 @@ const addNews = async (req, res) => {
       const interestedUsers = await User.find({
         "preferences.categories": category,
         fcmToken: { $exists: true, $ne: null }
-      });      
+      });
 
       const userTokens = interestedUsers.map((users) => users.fcmToken);
       if (userTokens.length > 0) {
