@@ -1,339 +1,415 @@
-const express = require('express');
-const axios = require('axios');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const News = require('../models/News');
-const User = require('../models/User');
-const getLocation = require('../utils/location');
-const analyzeContent = require('../utils/analyzeContent');
-const Comment = require('../models/Comment');
-const getGeoLocation = require('../utils/getLoc');
-const nodemailer = require('nodemailer');
-const classifyContent = require('../utils/chatgpt');
-
+const express = require("express");
+const axios = require("axios");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const News = require("../models/News");
+const User = require("../models/User");
+const getLocation = require("../utils/location");
+const analyzeContent = require("../utils/analyzeContent");
+const Comment = require("../models/Comment");
+const getGeoLocation = require("../utils/getLoc");
+const nodemailer = require("nodemailer");
+const classifyContent = require("../utils/chatgpt");
+const upload =require("../middleware/upload");
+const cloudinary=require("../config/cloudinary");
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
+// const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
 
 const addNews = async (req, res) => {
-    const { title, content, category, author, images, videos } = req.body;
-  
-    if (!title || !content || !category || !author) {
-      return res.status(400).json({ error: 'Missing required fields' });
+  const { title, content, category, author } = req.body;
+
+  if (!title || !content || !category || !author) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const user = await User.findById(author);
+    if (!user) {
+      return res.status(400).json({ error: "Invalid author ID. User not found." });
     }
-    
-    try {
-      const user = await User.findById(author);
-      const isToxic = await analyzeContent(content);
-      const location = await getGeoLocation();
-      const extractedKeywords = await classifyContent(content); // Get top 3 keywords
-      
-      // Extract only the tag names as strings
-      const keywords = extractedKeywords.map(item => item.tag);
-  
-      console.log(user.username);
-      console.log(location);
-      console.log('Extracted Keywords:', keywords);
-      
-      const contentStatus = isToxic ? 'Rejected' : 'Approved';
-      
-      const newNews = new News({
-        title,
-        content,
-        category,
-        author,
-        images,
-        videos,
-        location: {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          ip: location.ip,
-          timezone: location.timezone,
-          accuracy: location.accuracy,
-          city: location.city,
-          asn: location.asn,
-          organization: location.organization,
-          area_code: location.area_code,
-          organization_name: location.organization_name,
-          country_code: location.country_code,
-          country_code3: location.country_code3,
-          continent_code: location.continent_code,
-          country: location.country,
-          region: location.region,
-        },
-        keywords, // Store extracted keywords as an array of strings
-        flaggedByAI: isToxic,
-        flaggedReason: isToxic ? 'Offensive Content' : '',
-        status: contentStatus,
-      });
-  
+
+    const isToxic = await analyzeContent(content).catch((err) => {
+      console.error("Error analyzing content:", err);
+      return false;
+    });
+
+    const location = await getGeoLocation().catch((err) => {
+      console.error("Error getting location:", err);
+      return {};
+    });
+
+    const extractedKeywords = await classifyContent(content).catch((err) => {
+      console.error("Error extracting keywords:", err);
+      return [];
+    });
+
+    const keywords = extractedKeywords.map((item) => item.tag);
+    const contentStatus = isToxic ? "Rejected" : "Approved";
+
+    let imageUrls = [];
+    let videoUrls = [];
+
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      try {
+        
+
+        const uploadPromises = req.files.map(async (file) => {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: "news",
+            resource_type: "auto",
+          });
+
+          if (file.mimetype.startsWith("image")) {
+            imageUrls.push(result.secure_url);
+          } else if (file.mimetype.startsWith("video")) {
+            videoUrls.push(result.secure_url);
+          }
+
+          await fs.promises.unlink(file.path);
+        });
+
+        await Promise.all(uploadPromises);
+      } catch (uploadError) {
+        console.error("Cloudinary upload error:", uploadError);
+        return res.status(500).json({ success: false, message: "Failed to upload media" });
+      }
+    }
+
+    const newNews = new News({
+      title,
+      content,
+      category,
+      author,
+      images: imageUrls,
+      videos: videoUrls,
+      location: {
+        latitude: location.latitude || "",
+        longitude: location.longitude || "",
+        ip: location.ip || "",
+        timezone: location.timezone || "",
+        accuracy: location.accuracy || 0,
+        city: location.city || "",
+        asn: location.asn || 0,
+        organization: location.organization || "",
+        area_code: location.area_code || "",
+        organization_name: location.organization_name || "",
+        country_code: location.country_code || "",
+        country_code3: location.country_code3 || "",
+        continent_code: location.continent_code || "",
+        country: location.country || "",
+        region: location.region || "",
+      },
+      keywords,
+      flaggedByAI: isToxic,
+      flaggedReason: isToxic ? "Offensive Content" : "",
+      status: contentStatus,
+    });
+
+    const savedNews = await newNews.save();
+
+    if (isToxic) {
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
-            user: "contact.skillswap@gmail.com",
-            pass: "mtmstfcenrryopyi",
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
         },
       });
-    
+
       const mailOptions = {
-        from: "contact.skillswap@gmail.com",
+        from: process.env.EMAIL_USER,
         to: "pritammundhe00@gmail.com",
         subject: "Offensive Language Detected in News Submission",
         html: `
-            <html>
-                <body>
-                    <h2>⚠ Offensive Language Detected</h2>
-                    <p>Your recent news submission has been flagged for offensive content.</p>
-                    <h3>📌 News Title:</h3>
-                    <p>${title}</p>
-                    <h3>👤 Added by:</h3>
-                    <p>${user.username}</p>
-                    <p>If you believe this is a mistake, please contact support.</p>
-                    <a href="mailto:support@skillswap.com">Contact Support</a>
-                </body>
-            </html>
-        `
+              <html>
+                  <body>
+                      <h2>⚠ Offensive Language Detected</h2>
+                      <p>Your recent news submission has been flagged for offensive content.</p>
+                      <h3>📌 News Title:</h3>
+                      <p>${title}</p>
+                      <h3>👤 Added by:</h3>
+                      <p>${user.username}</p>
+                      <p>If you believe this is a mistake, please contact support.</p>
+                      <a href="mailto:support@skillswap.com">Contact Support</a>
+                  </body>
+              </html>
+          `,
       };
-    
-      if(isToxic){
-          transporter.sendMail(mailOptions, (err, info) => {
-              if (err) {
-                  console.error(err);
-                  return res.status(500).json({message: 'Error sending email'});
-              }
-              return res.status(200).json({message: 'Email sent successfully'});
-          });
-      }
-      
-      const savedNews = await newNews.save();
-      res.status(201).json(savedNews);
-    } catch (error) {
-      console.error('Error saving news:', error);
-      res.status(500).send('Server error');
+
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error("Error sending email:", err);
+        }
+      });
     }
-  };
-  
+
+    res.status(201).json(savedNews);
+  } catch (error) {
+    console.error("Error saving news:", error);
+    res.status(500).send("Server error");
+  }
+};
+
+
 
 const commentController = {
+  // Create a new comment
+  createComment: async (req, res) => {
+    try {
+      const { newsId, userId, content, parentCommentId } = req.body;
 
-    // Create a new comment
-    createComment: async (req, res) => {
-        try {
-            const { newsId, userId, content, parentCommentId } = req.body;
+      // Validate required fields
+      if (!newsId || !userId || !content) {
+        return res
+          .status(400)
+          .json({ message: "News ID, User ID, and content are required." });
+      }
 
-            // Validate required fields
-            if (!newsId || !userId || !content) {
-                return res.status(400).json({ message: 'News ID, User ID, and content are required.' });
-            }
+      const isToxic = await analyzeContent(content);
+      const contentStatus = isToxic ? "Rejected" : "Approved";
 
+      // Create a new comment
+      const newComment = new Comment({
+        newsId,
+        userId,
+        content,
+        parentCommentId: parentCommentId || null,
+        flaggedByAI: isToxic,
+        flaggedReason: isToxic ? "Offensive Content" : "",
+        status: contentStatus,
+      });
 
-            const isToxic = await analyzeContent(content);
-            const contentStatus = isToxic ? 'Rejected' : 'Approved';
+      await newComment.save();
 
-            // Create a new comment
-            const newComment = new Comment({
-                newsId,
-                userId,
-                content,
-                parentCommentId: parentCommentId || null,
-                flaggedByAI: isToxic,
-                flaggedReason: isToxic ? 'Offensive Content' : '',
-                status: contentStatus,
-            });
+      res
+        .status(201)
+        .json({
+          message: "Comment created successfully!",
+          comment: newComment,
+        });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error creating comment.", error: error.message });
+    }
+  },
 
-            await newComment.save();
+  // Get comments for a specific article
+  getCommentsByArticle: async (req, res) => {
+    try {
+      const { newsId } = req.params;
 
-            res.status(201).json({ message: 'Comment created successfully!', comment: newComment });
-        } catch (error) {
-            res.status(500).json({ message: 'Error creating comment.', error: error.message });
-        }
-    },
+      // Validate newsId
+      if (!newsId) {
+        return res.status(400).json({ message: "news ID is required." });
+      }
 
-    // Get comments for a specific article
-    getCommentsByArticle: async (req, res) => {
-        try {
-            const { newsId } = req.params;
+      const comments = await Comment.find({ newsId }).sort({ createdAt: -1 });
 
-            // Validate newsId
-            if (!newsId) {
-                return res.status(400).json({ message: 'news ID is required.' });
-            }
+      res.status(200).json({ comments });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error fetching comments.", error: error.message });
+    }
+  },
 
-            const comments = await Comment.find({ newsId }).sort({ createdAt: -1 });
+  // Update a comment
+  updateComment: async (req, res) => {
+    try {
+      const { commentId } = req.params;
+      const { content } = req.body;
 
-            res.status(200).json({ comments });
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching comments.', error: error.message });
-        }
-    },
+      // Validate required fields
+      if (!commentId || !content) {
+        return res
+          .status(400)
+          .json({ message: "Comment ID and content are required." });
+      }
 
-    // Update a comment
-    updateComment: async (req, res) => {
-        try {
-            const { commentId } = req.params;
-            const { content } = req.body;
+      const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        { content },
+        { new: true }
+      );
 
-            // Validate required fields
-            if (!commentId || !content) {
-                return res.status(400).json({ message: 'Comment ID and content are required.' });
-            }
+      if (!updatedComment) {
+        return res.status(404).json({ message: "Comment not found." });
+      }
 
-            const updatedComment = await Comment.findByIdAndUpdate(
-                commentId,
-                { content },
-                { new: true }
-            );
+      res
+        .status(200)
+        .json({
+          message: "Comment updated successfully!",
+          comment: updatedComment,
+        });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error updating comment.", error: error.message });
+    }
+  },
 
-            if (!updatedComment) {
-                return res.status(404).json({ message: 'Comment not found.' });
-            }
+  // Delete a comment
+  deleteComment: async (req, res) => {
+    try {
+      const { commentId } = req.params;
 
-            res.status(200).json({ message: 'Comment updated successfully!', comment: updatedComment });
-        } catch (error) {
-            res.status(500).json({ message: 'Error updating comment.', error: error.message });
-        }
-    },
+      // Validate commentId
+      if (!commentId) {
+        return res.status(400).json({ message: "Comment ID is required." });
+      }
 
-    // Delete a comment
-    deleteComment: async (req, res) => {
-        try {
-            const { commentId } = req.params;
+      const deletedComment = await Comment.findByIdAndDelete(commentId);
 
-            // Validate commentId
-            if (!commentId) {
-                return res.status(400).json({ message: 'Comment ID is required.' });
-            }
+      if (!deletedComment) {
+        return res.status(404).json({ message: "Comment not found." });
+      }
 
-            const deletedComment = await Comment.findByIdAndDelete(commentId);
+      res.status(200).json({ message: "Comment deleted successfully!" });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error deleting comment.", error: error.message });
+    }
+  },
 
-            if (!deletedComment) {
-                return res.status(404).json({ message: 'Comment not found.' });
-            }
+  // Like a comment
+  likeComment: async (req, res) => {
+    try {
+      const { commentId } = req.params;
 
-            res.status(200).json({ message: 'Comment deleted successfully!' });
-        } catch (error) {
-            res.status(500).json({ message: 'Error deleting comment.', error: error.message });
-        }
-    },
+      // Validate commentId
+      if (!commentId) {
+        return res.status(400).json({ message: "Comment ID is required." });
+      }
 
-    // Like a comment
-    likeComment: async (req, res) => {
-        try {
-            const { commentId } = req.params;
+      const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        { $inc: { likes: 1 } },
+        { new: true }
+      );
 
-            // Validate commentId
-            if (!commentId) {
-                return res.status(400).json({ message: 'Comment ID is required.' });
-            }
+      if (!updatedComment) {
+        return res.status(404).json({ message: "Comment not found." });
+      }
 
+      res
+        .status(200)
+        .json({ message: "Comment liked!", comment: updatedComment });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error liking comment.", error: error.message });
+    }
+  },
 
-            const updatedComment = await Comment.findByIdAndUpdate(
-                commentId,
-                { $inc: { likes: 1 } },
-                { new: true }
-            );
+  // Dislike a comment
+  dislikeComment: async (req, res) => {
+    try {
+      const { commentId } = req.params;
 
-            if (!updatedComment) {
-                return res.status(404).json({ message: 'Comment not found.' });
-            }
+      // Validate commentId
+      if (!commentId) {
+        return res.status(400).json({ message: "Comment ID is required." });
+      }
 
-            res.status(200).json({ message: 'Comment liked!', comment: updatedComment });
-        } catch (error) {
-            res.status(500).json({ message: 'Error liking comment.', error: error.message });
-        }
-    },
+      const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        { $inc: { dislikes: 1 } },
+        { new: true }
+      );
 
-    // Dislike a comment
-    dislikeComment: async (req, res) => {
-        try {
-            const { commentId } = req.params;
+      if (!updatedComment) {
+        return res.status(404).json({ message: "Comment not found." });
+      }
 
-            // Validate commentId
-            if (!commentId) {
-                return res.status(400).json({ message: 'Comment ID is required.' });
-            }
-            
-
-            const updatedComment = await Comment.findByIdAndUpdate(
-                commentId,
-                { $inc: { dislikes: 1 } },
-                { new: true }
-            );
-
-            if (!updatedComment) {
-                return res.status(404).json({ message: 'Comment not found.' });
-            }
-
-            res.status(200).json({ message: 'Comment disliked!', comment: updatedComment });
-        } catch (error) {
-            res.status(500).json({ message: 'Error disliking comment.', error: error.message });
-        }
-    },
+      res
+        .status(200)
+        .json({ message: "Comment disliked!", comment: updatedComment });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error disliking comment.", error: error.message });
+    }
+  },
 };
 
 // Admin Approve or Reject News
 const updateNewsStatus = async (req, res) => {
-    const { id, status, reviewComment } = req.body;
-  
-    if (!id || !['Approved', 'Rejected'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid input' });
-    }
-  
-    try {
-      const updatedNews = await News.findByIdAndUpdate(
-        id,
-        { 
-          status, 
-          reviewComment: status === 'Rejected' ? reviewComment || 'No comment provided' : '' 
-        },
-        { new: true }
-      );
-  
-      if (!updatedNews) {
-        return res.status(404).json({ error: 'News not found' });
-      }
-  
-      res.status(200).json(updatedNews);
-    } catch (error) {
-      console.error('Error updating news status:', error);
-      res.status(500).send('Server error');
-    }
-  };
+  const { id, status, reviewComment } = req.body;
 
-  const fetchNews = async (req, res) => {
-    const { category, location, latitude, longitude, keywords, startDate, endDate, source } = req.query;
-    const filter = {};
-  
-    if (category) filter.category = category;
-    if (location) filter['location.city'] = location;
-    if (latitude && longitude) {
-      filter['location.latitude'] = parseFloat(latitude);
-      filter['location.longitude'] = parseFloat(longitude);
-    }
-    if (keywords) filter.content = { $regex: keywords, $options: 'i' };
-    if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) filter.createdAt.$gte = new Date(startDate);
-      if (endDate) filter.createdAt.$lte = new Date(endDate);
-    }
-    if (source) filter.author = source;
-  
-    try {
-      const newsArticles = await News.find(filter).sort({ createdAt: -1 });
-      res.status(200).json(newsArticles);
-    } catch (error) {
-      console.error('Error fetching news:', error);
-      res.status(500).send('Server error');
-    }
-  }; 
+  if (!id || !["Approved", "Rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid input" });
+  }
 
+  try {
+    const updatedNews = await News.findByIdAndUpdate(
+      id,
+      {
+        status,
+        reviewComment:
+          status === "Rejected" ? reviewComment || "No comment provided" : "",
+      },
+      { new: true }
+    );
+
+    if (!updatedNews) {
+      return res.status(404).json({ error: "News not found" });
+    }
+
+    res.status(200).json(updatedNews);
+  } catch (error) {
+    console.error("Error updating news status:", error);
+    res.status(500).send("Server error");
+  }
+};
+
+const fetchNews = async (req, res) => {
+  const {
+    category,
+    location,
+    latitude,
+    longitude,
+    keywords,
+    startDate,
+    endDate,
+    source,
+  } = req.query;
+  const filter = {};
+
+  if (category) filter.category = category;
+  if (location) filter["location.city"] = location;
+  if (latitude && longitude) {
+    filter["location.latitude"] = parseFloat(latitude);
+    filter["location.longitude"] = parseFloat(longitude);
+  }
+  if (keywords) filter.content = { $regex: keywords, $options: "i" };
+  if (startDate || endDate) {
+    filter.createdAt = {};
+    if (startDate) filter.createdAt.$gte = new Date(startDate);
+    if (endDate) filter.createdAt.$lte = new Date(endDate);
+  }
+  if (source) filter.author = source;
+
+  try {
+    const newsArticles = await News.find(filter).sort({ createdAt: -1 });
+    res.status(200).json(newsArticles);
+  } catch (error) {
+    console.error("Error fetching news:", error);
+    res.status(500).send("Server error");
+  }
+};
 
 module.exports = {
   addNews,
   commentController,
   updateNewsStatus,
-  fetchNews
+  fetchNews,
 };
