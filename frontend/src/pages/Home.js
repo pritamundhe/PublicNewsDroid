@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const Home = () => {
     const [news, setNews] = useState([]);
@@ -18,38 +19,18 @@ const Home = () => {
             });
     }, []);
 
-    // Function to format the "createdAt" date
     const formatDate = (dateString) => {
         const options = { year: "numeric", month: "long", day: "numeric" };
         return new Date(dateString).toLocaleDateString("en-US", options);
     };
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-gray-100 min-h-screen font-times">
             {/* Header */}
-            <header className="bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-                <span className="text-sm text-gray-500">March 3, 2025</span>
-                <div className="font-inter font-bold text-2xl text-gray-500">
-                    <h1>Public News Droid</h1>
-                </div>
-                <div className="flex space-x-4">
-                    <a href="#" className="text-gray-500">Search</a>
-                    <a href="#" className="text-gray-500">Login</a>
-                    <a href="#" className="bg-red-500 text-white px-4 py-1">Subscribe</a>
-                </div>
-            </header>
-            
-
-            {/* Navigation */}
-            <nav className="font-inter bg-white border-b border-gray-200 py-2 px-4 flex justify-center space-x-4 overflow-x-auto">
-                {["India", "World", "Movies", "Sport", "Data", "Health", "Opinion", "Science", "Business", "Premium"].map(category => (
-                    <a key={category} href="#" className="text-gray-400 hover:text-red-500 whitespace-nowrap">{category}</a>
-                ))}
-            </nav>
-
+            <Navbar />
+    
             {/* Main Content */}
             <main className="font-inter container mx-auto px-4 md:px-8 lg:px-16 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
-                {/* Sidebar - Premium Section */}
                 <aside className="lg:col-span-1 hidden lg:block">
                     <h2 className="text-red-500 font-bold text-2xl mb-4">Premium</h2>
                     <div className="space-y-4">
@@ -62,7 +43,6 @@ const Home = () => {
                     </div>
                 </aside>
 
-                {/* News Section - Extra Width (lg:col-span-3) */}
                 <section className="lg:col-span-3">
                     {loading ? (
                         <p className="text-center text-gray-500">Loading news...</p>
@@ -120,22 +100,7 @@ const Home = () => {
                 </aside>
             </main>
 
-            {/* Footer */}
-            <footer className="bg-white border-t border-gray-200 py-6">
-                <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
-                    <div>
-                        <h2 className="text-lg font-bold mb-2">PUBLIC NEWS DROID</h2>
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-bold mb-2">Editorial</h2>
-                        <p className="text-gray-500">Thought-provoking opinions</p>
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-bold mb-2">Analysis</h2>
-                        <p className="text-gray-500">In-depth perspectives</p>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };
