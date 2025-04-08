@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import { useEffect } from 'react';
 import io from 'socket.io-client';
 import Admin from "./pages/Admin";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 const socket = io('http://localhost:5000'); 
 
 function App() {
@@ -29,6 +31,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/navbar" element={<Navbar/>}/>
+        <Route path="/footer" element={<Footer/>}/>
       </Routes>
     </Router>
   );
