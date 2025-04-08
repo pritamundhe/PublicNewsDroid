@@ -27,6 +27,10 @@ const UserSchema = new mongoose.Schema({
         },
         required: false,
     },
+    code: {
+        type: Number,
+        required: false
+    },
     preferences: {
         categories: [{ type: String }],
         language: { type: String, default: 'en' },

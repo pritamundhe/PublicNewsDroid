@@ -22,12 +22,20 @@ app.use(express.json());
 const fs = require("fs");
 
 const addNews = async (req, res) => {
-
   const { title, content, category, author, images, videos } = req.body;
 
   if (!title || !content || !category || !author) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
 
+  // Function to calculate a region code based on 10km radius
+  function getRegionCode(lat, lon) {
+    const RADIUS_KM = 10;
+    const latStep = RADIUS_KM / 111; // ≈ 0.09 degrees
+    const lonStep = RADIUS_KM / (111 * Math.cos(lat * Math.PI / 180)); // Adjust for curvature
+    const latRegion = Math.floor(lat / latStep);
+    const lonRegion = Math.floor(lon / lonStep);
+    return latRegion * 100000 + lonRegion;
   }
 
   try {
@@ -36,7 +44,6 @@ const addNews = async (req, res) => {
     const location = await getGeoLocation();
     const extractedKeywords = await classifyContent(content);
 
-    // Extract only the tag names as strings
     const keywords = extractedKeywords.map(item => item.tag);
 
     console.log(user.username);
@@ -44,14 +51,12 @@ const addNews = async (req, res) => {
     console.log('Extracted Keywords:', keywords);
 
     const contentStatus = isToxic ? 'Rejected' : 'Approved';
-    
+
     let imageUrls = [];
     let videoUrls = [];
 
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       try {
-        
-
         const uploadPromises = req.files.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "news",
@@ -74,6 +79,10 @@ const addNews = async (req, res) => {
       }
     }
 
+    // 🧠 Generate region code based on lat/lon
+    const latitude = parseFloat(location.latitude || "0");
+    const longitude = parseFloat(location.longitude || "0");
+    const regionCode = getRegionCode(latitude, longitude);
 
     const newNews = new News({
       title,
@@ -99,10 +108,12 @@ const addNews = async (req, res) => {
         country: location.country || "",
         region: location.region || "",
       },
+      code: regionCode,
       keywords,
       flaggedByAI: isToxic,
       flaggedReason: isToxic ? "Offensive Content" : "",
       status: contentStatus,
+      code: regionCode, // ✅ region code based on 10km circle
     });
 
     const transporter = nodemailer.createTransport({
@@ -142,11 +153,11 @@ const addNews = async (req, res) => {
         return res.status(200).json({ message: 'Email sent successfully' });
       });
     }
+
     const savedNews = await newNews.save();
 
     if (isToxic) {
       const adminUsers = await User.find({ role: "admin" });
-
       adminUsers.forEach(async (adminUser) => {
         if (adminUser.fcmToken) {
           await sendNotification(
@@ -156,12 +167,11 @@ const addNews = async (req, res) => {
           );
         }
       });
-    }
-    else {
+    } else {
       const interestedUsers = await User.find({
         "preferences.categories": category,
         fcmToken: { $exists: true, $ne: null }
-      });      
+      });
 
       const userTokens = interestedUsers.map((users) => users.fcmToken);
       if (userTokens.length > 0) {
