@@ -48,6 +48,13 @@ app.use('/admin', adminRoutes);
 app.use('/users', userRoutes);
 app.use('/news', newsRoutes);
 
+// console.log("Cloudinary Config:", {
+//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+//     api_key: process.env.CLOUDINARY_API_KEY ? "Exists" : "Missing",
+//     api_secret: process.env.CLOUDINARY_API_SECRET ? "Exists" : "Missing",
+//   });
+
+
 server.listen(PORT,()=>{
     console.log("app listenng on port:",PORT);
 })
