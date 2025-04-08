@@ -10,8 +10,8 @@ const Comment = require("../models/Comment");
 const getGeoLocation = require("../utils/getLoc");
 const nodemailer = require("nodemailer");
 const classifyContent = require("../utils/chatgpt");
-const upload =require("../middleware/upload");
-const cloudinary=require("../config/cloudinary");
+const upload = require("../middleware/upload");
+const cloudinary = require("../config/cloudinary");
 
 dotenv.config();
 
@@ -22,6 +22,7 @@ app.use(express.json());
 const fs = require("fs");
 
 const addNews = async (req, res) => {
+<<<<<<< HEAD
   const { title, content, category, author, images, videos } = req.body;
 
   if (!title || !content || !category || !author) {
@@ -36,27 +37,57 @@ const addNews = async (req, res) => {
     const latRegion = Math.floor(lat / latStep);
     const lonRegion = Math.floor(lon / lonStep);
     return latRegion * 100000 + lonRegion;
+=======
+  const { title, content, category, author } = req.body;
+
+  if (!title || !content || !category || !author) {
+    return res.status(400).json({ error: "Missing required fields" });
+>>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
   }
 
   try {
     const user = await User.findById(author);
-    const isToxic = await analyzeContent(content);
-    const location = await getGeoLocation();
-    const extractedKeywords = await classifyContent(content);
+    if (!user) {
+      return res.status(400).json({ error: "Invalid author ID. User not found." });
+    }
 
+<<<<<<< HEAD
     const keywords = extractedKeywords.map(item => item.tag);
+=======
+    const isToxic = await analyzeContent(content).catch((err) => {
+      console.error("Error analyzing content:", err);
+      return false;
+    });
+>>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
 
-    console.log(user.username);
-    console.log(location);
-    console.log('Extracted Keywords:', keywords);
+    const location = await getGeoLocation().catch((err) => {
+      console.error("Error getting location:", err);
+      return {};
+    });
 
+    const extractedKeywords = await classifyContent(content).catch((err) => {
+      console.error("Error extracting keywords:", err);
+      return [];
+    });
+
+    const keywords = extractedKeywords.map((item) => item.tag);
+    const contentStatus = isToxic ? "Rejected" : "Approved";
+
+<<<<<<< HEAD
     const contentStatus = isToxic ? 'Rejected' : 'Approved';
 
+=======
+>>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
     let imageUrls = [];
     let videoUrls = [];
 
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       try {
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
         const uploadPromises = req.files.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "news",
@@ -79,11 +110,14 @@ const addNews = async (req, res) => {
       }
     }
 
+<<<<<<< HEAD
     // 🧠 Generate region code based on lat/lon
     const latitude = parseFloat(location.latitude || "0");
     const longitude = parseFloat(location.longitude || "0");
     const regionCode = getRegionCode(latitude, longitude);
 
+=======
+>>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
     const newNews = new News({
       title,
       content,
@@ -116,6 +150,7 @@ const addNews = async (req, res) => {
       code: regionCode, // ✅ region code based on 10km circle
     });
 
+<<<<<<< HEAD
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -165,6 +200,42 @@ const addNews = async (req, res) => {
             "News Flagged",
             `Review the flagged news: ${savedNews.title}`
           );
+=======
+    const savedNews = await newNews.save();
+
+    if (isToxic) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: "pritammundhe00@gmail.com",
+        subject: "Offensive Language Detected in News Submission",
+        html: `
+              <html>
+                  <body>
+                      <h2>⚠ Offensive Language Detected</h2>
+                      <p>Your recent news submission has been flagged for offensive content.</p>
+                      <h3>📌 News Title:</h3>
+                      <p>${title}</p>
+                      <h3>👤 Added by:</h3>
+                      <p>${user.username}</p>
+                      <p>If you believe this is a mistake, please contact support.</p>
+                      <a href="mailto:support@skillswap.com">Contact Support</a>
+                  </body>
+              </html>
+          `,
+      };
+
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error("Error sending email:", err);
+>>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
         }
       });
     } else {
@@ -179,16 +250,17 @@ const addNews = async (req, res) => {
       }
     }
 
+
     res.status(201).json(savedNews);
   } catch (error) {
-    console.error('Error saving news:', error);
-    res.status(500).send('Server error');
+    console.error("Error saving news:", error);
+    res.status(500).send("Server error");
   }
 };
 
 
-const commentController = {
 
+const commentController = {
   // Create a new comment
   createComment: async (req, res) => {
     try {
@@ -196,12 +268,13 @@ const commentController = {
 
       // Validate required fields
       if (!newsId || !userId || !content) {
-        return res.status(400).json({ message: 'News ID, User ID, and content are required.' });
+        return res
+          .status(400)
+          .json({ message: "News ID, User ID, and content are required." });
       }
 
-
       const isToxic = await analyzeContent(content);
-      const contentStatus = isToxic ? 'Rejected' : 'Approved';
+      const contentStatus = isToxic ? "Rejected" : "Approved";
 
       // Create a new comment
       const newComment = new Comment({
@@ -210,15 +283,22 @@ const commentController = {
         content,
         parentCommentId: parentCommentId || null,
         flaggedByAI: isToxic,
-        flaggedReason: isToxic ? 'Offensive Content' : '',
+        flaggedReason: isToxic ? "Offensive Content" : "",
         status: contentStatus,
       });
 
       await newComment.save();
 
-      res.status(201).json({ message: 'Comment created successfully!', comment: newComment });
+      res
+        .status(201)
+        .json({
+          message: "Comment created successfully!",
+          comment: newComment,
+        });
     } catch (error) {
-      res.status(500).json({ message: 'Error creating comment.', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error creating comment.", error: error.message });
     }
   },
 
@@ -229,14 +309,16 @@ const commentController = {
 
       // Validate newsId
       if (!newsId) {
-        return res.status(400).json({ message: 'news ID is required.' });
+        return res.status(400).json({ message: "news ID is required." });
       }
 
       const comments = await Comment.find({ newsId }).sort({ createdAt: -1 });
 
       res.status(200).json({ comments });
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching comments.', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error fetching comments.", error: error.message });
     }
   },
 
@@ -248,7 +330,9 @@ const commentController = {
 
       // Validate required fields
       if (!commentId || !content) {
-        return res.status(400).json({ message: 'Comment ID and content are required.' });
+        return res
+          .status(400)
+          .json({ message: "Comment ID and content are required." });
       }
 
       const updatedComment = await Comment.findByIdAndUpdate(
@@ -258,12 +342,19 @@ const commentController = {
       );
 
       if (!updatedComment) {
-        return res.status(404).json({ message: 'Comment not found.' });
+        return res.status(404).json({ message: "Comment not found." });
       }
 
-      res.status(200).json({ message: 'Comment updated successfully!', comment: updatedComment });
+      res
+        .status(200)
+        .json({
+          message: "Comment updated successfully!",
+          comment: updatedComment,
+        });
     } catch (error) {
-      res.status(500).json({ message: 'Error updating comment.', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error updating comment.", error: error.message });
     }
   },
 
@@ -274,48 +365,50 @@ const commentController = {
 
       // Validate commentId
       if (!commentId) {
-
-        return res.status(400).json({ message: 'Comment ID is required.' });
+        return res.status(400).json({ message: "Comment ID is required." });
       }
 
       const deletedComment = await Comment.findByIdAndDelete(commentId);
 
       if (!deletedComment) {
-        return res.status(404).json({ message: 'Comment not found.' });
+        return res.status(404).json({ message: "Comment not found." });
       }
 
-      res.status(200).json({ message: 'Comment deleted successfully!' });
+      res.status(200).json({ message: "Comment deleted successfully!" });
     } catch (error) {
-      res.status(500).json({ message: 'Error deleting comment.', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error deleting comment.", error: error.message });
     }
   },
 
   // Like a comment
   likeComment: async (req, res) => {
-
     try {
       const { commentId } = req.params;
 
       // Validate commentId
       if (!commentId) {
-        return res.status(400).json({ message: 'Comment ID is required.' });
+        return res.status(400).json({ message: "Comment ID is required." });
       }
-
 
       const updatedComment = await Comment.findByIdAndUpdate(
         commentId,
         { $inc: { likes: 1 } },
-
         { new: true }
       );
 
       if (!updatedComment) {
-        return res.status(404).json({ message: 'Comment not found.' });
+        return res.status(404).json({ message: "Comment not found." });
       }
 
-      res.status(200).json({ message: 'Comment liked!', comment: updatedComment });
+      res
+        .status(200)
+        .json({ message: "Comment liked!", comment: updatedComment });
     } catch (error) {
-      res.status(500).json({ message: 'Error liking comment.', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error liking comment.", error: error.message });
     }
   },
 
@@ -326,9 +419,8 @@ const commentController = {
 
       // Validate commentId
       if (!commentId) {
-        return res.status(400).json({ message: 'Comment ID is required.' });
+        return res.status(400).json({ message: "Comment ID is required." });
       }
-
 
       const updatedComment = await Comment.findByIdAndUpdate(
         commentId,
@@ -337,22 +429,26 @@ const commentController = {
       );
 
       if (!updatedComment) {
-        return res.status(404).json({ message: 'Comment not found.' });
+        return res.status(404).json({ message: "Comment not found." });
       }
 
-      res.status(200).json({ message: 'Comment disliked!', comment: updatedComment });
+      res
+        .status(200)
+        .json({ message: "Comment disliked!", comment: updatedComment });
     } catch (error) {
-      res.status(500).json({ message: 'Error disliking comment.', error: error.message });
+      res
+        .status(500)
+        .json({ message: "Error disliking comment.", error: error.message });
     }
   },
 };
 
+// Admin Approve or Reject News
 const updateNewsStatus = async (req, res) => {
   const { id, status, reviewComment } = req.body;
 
-  if (!id || !['Approved', 'Rejected'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid input' });
-
+  if (!id || !["Approved", "Rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid input" });
   }
 
   try {
@@ -360,15 +456,14 @@ const updateNewsStatus = async (req, res) => {
       id,
       {
         status,
-
-        reviewComment: status === 'Rejected' ? reviewComment || 'No comment provided' : ''
-
+        reviewComment:
+          status === "Rejected" ? reviewComment || "No comment provided" : "",
       },
       { new: true }
     );
 
     if (!updatedNews) {
-      return res.status(404).json({ error: 'News not found' });
+      return res.status(404).json({ error: "News not found" });
     }
 
     res.status(200).json(updatedNews);
