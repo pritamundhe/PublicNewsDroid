@@ -148,6 +148,18 @@ const addNews = async (req, res) => {
         }
       });
     }
+    else {
+      const interestedUsers = await User.find({
+        "preferences.categories": category,
+        fcmToken: { $exists: true, $ne: null }
+      });      
+
+      const userTokens = interestedUsers.map((users) => users.fcmToken);
+      if (userTokens.length > 0) {
+        await sendNotification(userTokens, "Breaking News!", `${title}`);
+      }
+    }
+
 
     res.status(201).json(savedNews);
   } catch (error) {

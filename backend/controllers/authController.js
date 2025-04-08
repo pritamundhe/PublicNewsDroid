@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const dotenv=require("dotenv");
+const getGeoLocation = require("../utils/getLoc");
 const { validationResult } = require('express-validator'); //for validating requests
 dotenv.config();
 
@@ -103,8 +104,8 @@ const resetPassword = async (req, res) => {
 
 const register = async (req, res) => {
   try {
-      const { username, email, password ,location,preferences,} = req.body;
-
+      const { username, email, password,preferences,} = req.body;
+      const location = await getGeoLocation();
       const existingUser = await User.findOne({ 
         $or: [
           { email: email },
@@ -128,8 +129,8 @@ const register = async (req, res) => {
           email,
           password: hashpassword,
           location: {
-            lat: location?.lat,
-            lon: location?.lon,
+            lat: location.latitude,
+            lon: location.longitude,
           },
           preferences: {
             categories: preferences?.categories || [],
