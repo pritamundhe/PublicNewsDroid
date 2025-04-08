@@ -158,10 +158,10 @@ const addNews = async (req, res) => {
       });
     }
     else {
-      const interestedUsers = User.find({
-        "prefences.category": category,
+      const interestedUsers = await User.find({
+        "preferences.categories": category,
         fcmToken: { $exists: true, $ne: null }
-      })
+      });      
 
       const userTokens = interestedUsers.map((users) => users.fcmToken);
       if (userTokens.length > 0) {
