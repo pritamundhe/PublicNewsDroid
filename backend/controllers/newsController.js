@@ -22,7 +22,6 @@ app.use(express.json());
 const fs = require("fs");
 
 const addNews = async (req, res) => {
-<<<<<<< HEAD
   const { title, content, category, author, images, videos } = req.body;
 
   if (!title || !content || !category || !author) {
@@ -37,12 +36,6 @@ const addNews = async (req, res) => {
     const latRegion = Math.floor(lat / latStep);
     const lonRegion = Math.floor(lon / lonStep);
     return latRegion * 100000 + lonRegion;
-=======
-  const { title, content, category, author } = req.body;
-
-  if (!title || !content || !category || !author) {
-    return res.status(400).json({ error: "Missing required fields" });
->>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
   }
 
   try {
@@ -51,14 +44,7 @@ const addNews = async (req, res) => {
       return res.status(400).json({ error: "Invalid author ID. User not found." });
     }
 
-<<<<<<< HEAD
     const keywords = extractedKeywords.map(item => item.tag);
-=======
-    const isToxic = await analyzeContent(content).catch((err) => {
-      console.error("Error analyzing content:", err);
-      return false;
-    });
->>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
 
     const location = await getGeoLocation().catch((err) => {
       console.error("Error getting location:", err);
@@ -70,24 +56,13 @@ const addNews = async (req, res) => {
       return [];
     });
 
-    const keywords = extractedKeywords.map((item) => item.tag);
     const contentStatus = isToxic ? "Rejected" : "Approved";
 
-<<<<<<< HEAD
-    const contentStatus = isToxic ? 'Rejected' : 'Approved';
-
-=======
->>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
     let imageUrls = [];
     let videoUrls = [];
 
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
       try {
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
         const uploadPromises = req.files.map(async (file) => {
           const result = await cloudinary.uploader.upload(file.path, {
             folder: "news",
@@ -110,14 +85,11 @@ const addNews = async (req, res) => {
       }
     }
 
-<<<<<<< HEAD
     // 🧠 Generate region code based on lat/lon
     const latitude = parseFloat(location.latitude || "0");
     const longitude = parseFloat(location.longitude || "0");
     const regionCode = getRegionCode(latitude, longitude);
 
-=======
->>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
     const newNews = new News({
       title,
       content,
@@ -150,7 +122,6 @@ const addNews = async (req, res) => {
       code: regionCode, // ✅ region code based on 10km circle
     });
 
-<<<<<<< HEAD
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -200,42 +171,6 @@ const addNews = async (req, res) => {
             "News Flagged",
             `Review the flagged news: ${savedNews.title}`
           );
-=======
-    const savedNews = await newNews.save();
-
-    if (isToxic) {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: "pritammundhe00@gmail.com",
-        subject: "Offensive Language Detected in News Submission",
-        html: `
-              <html>
-                  <body>
-                      <h2>⚠ Offensive Language Detected</h2>
-                      <p>Your recent news submission has been flagged for offensive content.</p>
-                      <h3>📌 News Title:</h3>
-                      <p>${title}</p>
-                      <h3>👤 Added by:</h3>
-                      <p>${user.username}</p>
-                      <p>If you believe this is a mistake, please contact support.</p>
-                      <a href="mailto:support@skillswap.com">Contact Support</a>
-                  </body>
-              </html>
-          `,
-      };
-
-      transporter.sendMail(mailOptions, (err, info) => {
-        if (err) {
-          console.error("Error sending email:", err);
->>>>>>> 3bdb63652048dcb2e85de9b1bc16b2650a3cb206
         }
       });
     } else {
