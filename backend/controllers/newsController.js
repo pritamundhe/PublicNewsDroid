@@ -10,8 +10,8 @@ const Comment = require("../models/Comment");
 const getGeoLocation = require("../utils/getLoc");
 const nodemailer = require("nodemailer");
 const classifyContent = require("../utils/chatgpt");
-const upload =require("../middleware/upload");
-const cloudinary=require("../config/cloudinary");
+const upload = require("../middleware/upload");
+const cloudinary = require("../config/cloudinary");
 
 dotenv.config();
 
@@ -55,31 +55,42 @@ const addNews = async (req, res) => {
     let imageUrls = [];
     let videoUrls = [];
 
-    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+    if (req.files) {
       try {
-        
-
-        const uploadPromises = req.files.map(async (file) => {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "news",
-            resource_type: "auto",
-          });
-
-          if (file.mimetype.startsWith("image")) {
+        const imageFiles = req.files.images || [];
+        const videoFiles = req.files.videos || [];
+    
+        const uploadPromises = [];
+    
+        imageFiles.forEach((file) => {
+          const uploadPromise = cloudinary.uploader.upload(file.path, {
+            folder: "news/images",
+            resource_type: "image",
+          }).then((result) => {
             imageUrls.push(result.secure_url);
-          } else if (file.mimetype.startsWith("video")) {
-            videoUrls.push(result.secure_url);
-          }
-
-          await fs.promises.unlink(file.path);
+            return fs.promises.unlink(file.path);
+          });
+          uploadPromises.push(uploadPromise);
         });
-
+    
+        videoFiles.forEach((file) => {
+          const uploadPromise = cloudinary.uploader.upload(file.path, {
+            folder: "news/videos",
+            resource_type: "video",
+          }).then((result) => {
+            videoUrls.push(result.secure_url);
+            return fs.promises.unlink(file.path);
+          });
+          uploadPromises.push(uploadPromise);
+        });
+    
         await Promise.all(uploadPromises);
       } catch (uploadError) {
         console.error("Cloudinary upload error:", uploadError);
         return res.status(500).json({ success: false, message: "Failed to upload media" });
       }
     }
+    
 
     const newNews = new News({
       title,
@@ -152,7 +163,7 @@ const addNews = async (req, res) => {
       const interestedUsers = await User.find({
         "preferences.categories": category,
         fcmToken: { $exists: true, $ne: null }
-      });      
+      });
 
       const userTokens = interestedUsers.map((users) => users.fcmToken);
       if (userTokens.length > 0) {
