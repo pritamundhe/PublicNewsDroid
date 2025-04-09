@@ -4,13 +4,14 @@ import Home from "./pages/Home";
 import Register from "./pages/Register";
 import { useEffect } from 'react';
 import io from 'socket.io-client';
-import Admin from "./pages/Admin";
+import { Toaster } from 'react-hot-toast';
+
 import Subscription from "./components/Subscription";
 import Signup from "./components/Authentication/SignUp";
 import Login from "./components/Authentication/Login";
 import NewsDetail from "./components/News/NewsDetails";
-import AddNews from "./components/News/AddNews";
-const socket = io('http://localhost:5000'); 
+import AdminDashboard from "./components/Admin/AdminDashboard";
+const socket = io('http://localhost:5000');
 
 function App() {
   useEffect(() => {
@@ -23,21 +24,21 @@ function App() {
     });
 
     return () => {
-      socket.disconnect(); 
+      socket.disconnect();
     };
   }, []);
   return (
     <Router>
+      <Toaster />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/admin" element={<Admin />} />
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/newsdetail" element={<NewsDetail />} />
-        <Route path="/add" element={<AddNews/>}/>
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </Router>
   );

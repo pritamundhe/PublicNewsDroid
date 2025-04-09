@@ -120,9 +120,20 @@ const register = async (req, res) => {
           return res.status(400).json({ message: 'Username already exists' });
         }
       }
-
+      function getRegionCode(lat, lon) {
+        const RADIUS_KM = 10;
+        const latStep = RADIUS_KM / 111; // ≈ 0.09 degrees
+        const lonStep = RADIUS_KM / (111 * Math.cos(lat * Math.PI / 180)); // Adjust for curvature
+        const latRegion = Math.floor(lat / latStep);
+        const lonRegion = Math.floor(lon / lonStep);
+        return latRegion * 100000 + lonRegion;
+      }
       const salt = await bcrypt.genSalt(10);
       const hashpassword = await bcrypt.hash(password, salt);
+
+      const latitude = parseFloat(location.latitude || "0");
+      const longitude = parseFloat(location.longitude || "0");
+      const regionCode = getRegionCode(latitude, longitude);
 
       const newUser = new User({
           username,
@@ -132,6 +143,7 @@ const register = async (req, res) => {
             lat: location.latitude,
             lon: location.longitude,
           },
+          code: regionCode,
           preferences: {
             categories: preferences?.categories || [],
             language: preferences?.language || 'en',

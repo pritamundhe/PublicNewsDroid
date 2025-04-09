@@ -1,9 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
     <header className="flex flex-col md:flex-row items-center justify-between px-4 py-4 border-b shadow-sm">
-      {/* Top left: Date and e-Paper */}
       <div className="flex items-center space-x-4 text-sm mb-2 md:mb-0">
         <span>April 8, 2025</span>
         <a href="#" className="text-red-700 font-semibold">
@@ -93,7 +93,9 @@ const Navbar = () => {
 
         {/* Login */}
         <div className="flex items-center space-x-1">
+          <Link to='/login'>
           <span>LOGIN</span>
+          </Link>
           <svg
             className="w-4 h-4"
             fill="none"

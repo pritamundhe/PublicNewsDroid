@@ -20,8 +20,15 @@ const navigate=useNavigate();
     try {
       const response = await axios.post("http://localhost:5000/users/login", formData);
       setMessage("Login successful");
-      console.log(response.data); 
-      navigate("/#");
+      console.log(response.data);
+      localStorage.setItem("token",response.data.token); 
+      localStorage.setItem("userId",response.data.user.id);
+      if(response.data.user.role == "user"){
+           navigate("/");
+        }
+        else{
+          navigate("/admin");
+      } 
     } catch (error) {
       setMessage(error.response?.data?.message || "Login failed");
     }
