@@ -61,29 +61,42 @@ const addNews = async (req, res) => {
     let imageUrls = [];
     let videoUrls = [];
 
-    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+    if (req.files) {
       try {
-        const uploadPromises = req.files.map(async (file) => {
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: "news",
-            resource_type: "auto",
-          });
-
-          if (file.mimetype.startsWith("image")) {
+        const imageFiles = req.files.images || [];
+        const videoFiles = req.files.videos || [];
+    
+        const uploadPromises = [];
+    
+        imageFiles.forEach((file) => {
+          const uploadPromise = cloudinary.uploader.upload(file.path, {
+            folder: "news/images",
+            resource_type: "image",
+          }).then((result) => {
             imageUrls.push(result.secure_url);
-          } else if (file.mimetype.startsWith("video")) {
-            videoUrls.push(result.secure_url);
-          }
-
-          await fs.promises.unlink(file.path);
+            return fs.promises.unlink(file.path);
+          });
+          uploadPromises.push(uploadPromise);
         });
-
+    
+        videoFiles.forEach((file) => {
+          const uploadPromise = cloudinary.uploader.upload(file.path, {
+            folder: "news/videos",
+            resource_type: "video",
+          }).then((result) => {
+            videoUrls.push(result.secure_url);
+            return fs.promises.unlink(file.path);
+          });
+          uploadPromises.push(uploadPromise);
+        });
+    
         await Promise.all(uploadPromises);
       } catch (uploadError) {
         console.error("Cloudinary upload error:", uploadError);
         return res.status(500).json({ success: false, message: "Failed to upload media" });
       }
     }
+    
 
     // 🧠 Generate region code based on lat/lon
     const latitude = parseFloat(location.latitude || "0");
@@ -184,7 +197,6 @@ const addNews = async (req, res) => {
         await sendNotification(userTokens, "Breaking News!", `${title}`);
       }
     }
-
 
     res.status(201).json(savedNews);
   } catch (error) {
