@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { requestForToken } from "./fireBaseConfig.js";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -46,7 +47,8 @@ export default function Signup() {
     };
     try {
       const response = await axios.post("http://localhost:5000/users/register", payload);
-      console.log("User registered successfully!");
+      console.log(response);
+      requestForToken(response.data.userId);
       navigate("/login");
     } catch (error) {
       console.log(error.response?.data?.message || "Registration failed.");

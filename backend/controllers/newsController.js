@@ -12,6 +12,7 @@ const nodemailer = require("nodemailer");
 const classifyContent = require("../utils/chatgpt");
 const upload = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
+const { sendNotification } =require("../config/firebase");
 
 dotenv.config();
 
@@ -44,18 +45,19 @@ const addNews = async (req, res) => {
       return res.status(400).json({ error: "Invalid author ID. User not found." });
     }
 
-    const keywords = extractedKeywords.map(item => item.tag);
-
+    
     const location = await getGeoLocation().catch((err) => {
       console.error("Error getting location:", err);
       return {};
     });
-
+    
     const extractedKeywords = await classifyContent(content).catch((err) => {
       console.error("Error extracting keywords:", err);
       return [];
     });
+    const keywords = extractedKeywords.map(item => item.tag);
 
+    const isToxic = await analyzeContent(content);
     const contentStatus = isToxic ? "Rejected" : "Approved";
 
     let imageUrls = [];
@@ -191,6 +193,7 @@ const addNews = async (req, res) => {
         "preferences.categories": category,
         fcmToken: { $exists: true, $ne: null }
       });
+      console.log(interestedUsers);
 
       const userTokens = interestedUsers.map((users) => users.fcmToken);
       if (userTokens.length > 0) {

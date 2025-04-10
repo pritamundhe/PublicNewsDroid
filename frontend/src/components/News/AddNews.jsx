@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
 
 const AddNews = () => {
   const [formData, setFormData] = useState({
@@ -75,7 +78,7 @@ const AddNews = () => {
           required
         />
 
-        <textarea
+        {/* <textarea
           name="content"
           placeholder="Content"
           className="w-full p-3 border rounded-xl"
@@ -83,8 +86,13 @@ const AddNews = () => {
           value={formData.content}
           onChange={handleChange}
           required
-        />
-
+        /> */}
+        <ReactQuill
+          theme="snow"
+          value={formData.content}
+          onChange={(value) => setFormData({ ...formData, content: value })}
+          className="bg-white rounded-xl"
+        />  
         <input
           type="text"
           name="category"
