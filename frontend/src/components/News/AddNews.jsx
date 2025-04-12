@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import Navbar from '../Navbar';
 
 
 const AddNews = () => {
@@ -64,21 +65,23 @@ const AddNews = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-2xl mt-6">
-      <h2 className="text-2xl font-semibold mb-4">Submit News</h2>
-      <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
+    <div>
+      <Navbar />
+      <div className="max-w-2xl mx-auto p-6 bg-white shadow-xl rounded-2xl mt-6">
+        <h2 className="text-2xl font-semibold mb-4">Submit News</h2>
+        <form onSubmit={handleSubmit} className="space-y-4" encType="multipart/form-data">
 
-        <input
-          type="text"
-          name="title"
-          placeholder="Title"
-          className="w-full p-3 border rounded-xl"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            className="w-full p-3 border rounded-xl"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
 
-        {/* <textarea
+          {/* <textarea
           name="content"
           placeholder="Content"
           className="w-full p-3 border rounded-xl"
@@ -86,56 +89,57 @@ const AddNews = () => {
           value={formData.content}
           onChange={handleChange}
           required
-        /> */}
-        <ReactQuill
-          theme="snow"
-          value={formData.content}
-          onChange={(value) => setFormData({ ...formData, content: value })}
-          className="bg-white rounded-xl"
-        />  
-        <input
-          type="text"
-          name="category"
-          placeholder="Category"
-          className="w-full p-3 border rounded-xl"
-          value={formData.category}
-          onChange={handleChange}
-          required
-        />
-
-        {/* Image Upload */}
-        <div>
-          <label className="block mb-1 font-medium">Upload Images</label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, 'image')}
-            className="block w-full"
+          /> */}
+          <ReactQuill
+            theme="snow"
+            value={formData.content}
+            onChange={(value) => setFormData({ ...formData, content: value })}
+            className="bg-white rounded-xl"
           />
-        </div>
-
-        {/* Video Upload */}
-        <div>
-          <label className="block mb-1 font-medium">Upload Videos</label>
           <input
-            type="file"
-            multiple
-            accept="video/*"
-            onChange={(e) => handleFileChange(e, 'video')}
-            className="block w-full"
+            type="text"
+            name="category"
+            placeholder="Category"
+            className="w-full p-3 border rounded-xl"
+            value={formData.category}
+            onChange={handleChange}
+            required
           />
-        </div>
 
-        <button
-          type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl"
-        >
-          Submit News
-        </button>
+          {/* Image Upload */}
+          <div>
+            <label className="block mb-1 font-medium">Upload Images</label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => handleFileChange(e, 'image')}
+              className="block w-full"
+            />
+          </div>
 
-        {message && <p className="text-center text-sm text-blue-600">{message}</p>}
-      </form>
+          {/* Video Upload */}
+          <div>
+            <label className="block mb-1 font-medium">Upload Videos</label>
+            <input
+              type="file"
+              multiple
+              accept="video/*"
+              onChange={(e) => handleFileChange(e, 'video')}
+              className="block w-full"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl"
+          >
+            Submit News
+          </button>
+
+          {message && <p className="text-center text-sm text-blue-600">{message}</p>}
+        </form>
+      </div>
     </div>
   );
 };
