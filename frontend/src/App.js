@@ -4,7 +4,7 @@ import Home from "./pages/Home";
 import { useEffect } from 'react';
 import io from 'socket.io-client';
 import { Toaster } from 'react-hot-toast';
-
+import Profile from "./components/Authentication/Profile";
 import Subscription from "./components/Subscription";
 import Signup from "./components/Authentication/SignUp";
 import Login from "./components/Authentication/Login";
@@ -38,6 +38,7 @@ function App() {
         <Route path="/newsdetail" element={<NewsDetail />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/addnews" element={<AddNews />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
   );
