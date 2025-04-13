@@ -1,20 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../Navbar';
 import Footer from '../Footer';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Profile = () => {
     const [activeTab, setActiveTab] = useState("profile");
 
     const [formData, setFormData] = useState({
-        email: 'ommali2672@gmail.com',
+        email: '',
         mobile: '',
-        firstName: 'Om',
-        lastName: 'Mali',
+        firstName: '',
+        lastName: '',
         dob: { day: '', month: '', year: '' },
         gender: '',
-        city: 'Pune',
+        city: '',
     });
+
+    const userId = localStorage.getItem("userId");
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.post("http://localhost:5000/users/userdata", {
+                    userId: userId,
+                });
+                setFormData((prev) => ({ ...prev, email: response.data.email }));
+            } catch (err) {
+                console.log("Error fetching user data", err);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+    const Navigate = useNavigate();
+
+    const logOut = () => {
+        localStorage.removeItem("userId");
+        localStorage.removeItem("token");
+        Navigate("/");
+    }
 
     const userNews = [
         {
@@ -68,7 +94,7 @@ const Profile = () => {
                         <li className={`cursor-pointer ${activeTab === "password" ? " text-red-600 px-2 py-1 font-semibold border-b-2 border-red-600" : "hover:underline"}`} onClick={() => setActiveTab("password")}>
                             Change passwords
                         </li>
-                        <li className=" px-4 py-2 bg-red-600 text-white hover:bg-red-400 w-fit rounded-md">
+                        <li className=" px-4 py-2 bg-red-600 text-white hover:bg-red-400 w-fit rounded-md" onClick={logOut}>
                             LOGOUT                        </li>
                     </ul>
                 </div>

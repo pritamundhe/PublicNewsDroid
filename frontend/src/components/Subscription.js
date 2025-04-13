@@ -6,7 +6,7 @@ export default function Subscription() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-white p-6 flex flex-col items-center font-times">
+      <div className="min-h-screen bg-gray-100 p-6 flex flex-col items-center font-times">
         <h1 className="text-4xl font-bold text-center mb-5 font-serif">
           Choose the best plan for your needs
         </h1>

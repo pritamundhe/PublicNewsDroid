@@ -207,11 +207,30 @@ const updateUserFcmToken = async (req, res) => {
   }
 };
 
+const userData = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const user = await User.findById(userId); // <-- This is the correct method
+    if (user) {
+      res.json({ email: user.email });
+    } else {
+      console.log("No user found");
+      res.status(404).json({ error: "No user found" }); // <-- return error response
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch user data" });
+  }
+};
+
+
 module.exports = {
   sendPasswordResetEmail,
   resetPassword,
   register,
   login,
-  updateUserFcmToken
+  updateUserFcmToken,
+  userData
 };
 
