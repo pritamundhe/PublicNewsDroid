@@ -35,8 +35,21 @@ const Home = () => {
           setLoading(false);
         });
     } else {
-      console.error('No userId found in localStorage');
-      setLoading(false);
+      fetch(`http://localhost:5000/news/fetch`)
+        .then(response => response.json())
+        .then(data => {
+          // Ensure data is an array before setting it to state
+          if (Array.isArray(data)) {
+            setNews(data);
+          } else {
+            console.error('API response is not an array:', data);
+          }
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error('Error fetching news:', error);
+          setLoading(false);
+        });
     }
   }, [userId]);  // Depend on userId to ensure it's loaded from localStorage
 
