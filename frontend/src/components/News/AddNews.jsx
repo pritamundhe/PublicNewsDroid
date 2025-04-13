@@ -12,6 +12,7 @@ const AddNews = () => {
     category: '',
   });
 
+  const userId=localStorage.getItem("userId");
   const [images, setImages] = useState([]);
   const [videos, setVideos] = useState([]);
   const [message, setMessage] = useState('');
@@ -37,7 +38,7 @@ const AddNews = () => {
     formPayload.append('title', formData.title);
     formPayload.append('content', formData.content);
     formPayload.append('category', formData.category);
-    formPayload.append('author', '67700b196a349353e3697a3d'); // Replace with actual ID
+    formPayload.append('author', userId); 
 
     // Only append files if they exist
     if (images.length > 0) {

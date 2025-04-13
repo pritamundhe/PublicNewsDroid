@@ -68,7 +68,7 @@ const sendPasswordResetEmail = async (req, res) => {
         console.error(err);
         return res.status(500).json({ message: 'Error sending email' });
       }
-      return res.status(200).json({ message: 'Password reset email sent successfully' });
+      return res.status(200).json({ message: 'Password reset email sent successfully',succes:true });
     });
   } catch (error) {
     console.error(error);
@@ -208,15 +208,15 @@ const updateUserFcmToken = async (req, res) => {
 };
 
 const userData = async (req, res) => {
-  const { userId } = req.body;
+  const { userId } = req.query;
 
   try {
-    const user = await User.findById(userId); // <-- This is the correct method
+    const user = await User.findById(userId); 
     if (user) {
       res.json({ email: user.email });
     } else {
       console.log("No user found");
-      res.status(404).json({ error: "No user found" }); // <-- return error response
+      res.status(404).json({ error: "No user found" }); 
     }
   } catch (error) {
     console.error(error);
