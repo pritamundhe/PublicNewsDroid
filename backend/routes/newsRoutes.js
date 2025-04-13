@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload=require("../middleware/upload");
-const { addNews,commentController,updateNewsStatus,fetchNews, fetch } = require('../controllers/newsController');  
+const { addNews,commentController,updateNewsStatus,fetchNews, fetch,fetchUserNews } = require('../controllers/newsController');  
 
 router.post("/add", upload.fields([
     { name: 'images', maxCount: 5 },
@@ -15,5 +15,6 @@ router.patch('/update-status', updateNewsStatus);
 
 router.get('/fetch', fetchNews);
 router.get('/fetc', fetch);
+router.get('/fetchusernews', fetchUserNews);
 
 module.exports = router;

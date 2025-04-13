@@ -12,7 +12,8 @@ const nodemailer = require("nodemailer");
 const classifyContent = require("../utils/chatgpt");
 const upload = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
-const { sendNotification } =require("../config/firebase");
+const { sendNotification } = require("../config/firebase");
+const { Types, isValidObjectId } = require("mongoose");
 
 dotenv.config();
 
@@ -45,12 +46,12 @@ const addNews = async (req, res) => {
       return res.status(400).json({ error: "Invalid author ID. User not found." });
     }
 
-    
+
     const location = await getGeoLocation().catch((err) => {
       console.error("Error getting location:", err);
       return {};
     });
-    
+
     const extractedKeywords = await classifyContent(content).catch((err) => {
       console.error("Error extracting keywords:", err);
       return [];
@@ -67,9 +68,9 @@ const addNews = async (req, res) => {
       try {
         const imageFiles = req.files.images || [];
         const videoFiles = req.files.videos || [];
-    
+
         const uploadPromises = [];
-    
+
         imageFiles.forEach((file) => {
           const uploadPromise = cloudinary.uploader.upload(file.path, {
             folder: "news/images",
@@ -80,7 +81,7 @@ const addNews = async (req, res) => {
           });
           uploadPromises.push(uploadPromise);
         });
-    
+
         videoFiles.forEach((file) => {
           const uploadPromise = cloudinary.uploader.upload(file.path, {
             folder: "news/videos",
@@ -91,14 +92,14 @@ const addNews = async (req, res) => {
           });
           uploadPromises.push(uploadPromise);
         });
-    
+
         await Promise.all(uploadPromises);
       } catch (uploadError) {
         console.error("Cloudinary upload error:", uploadError);
         return res.status(500).json({ success: false, message: "Failed to upload media" });
       }
     }
-    
+
 
     // 🧠 Generate region code based on lat/lon
     const latitude = parseFloat(location.latitude || "0");
@@ -487,7 +488,25 @@ const fetchNews = async (req, res) => {
   }
 };
 
+const fetchUserNews = async (req, res) => {
+  const { userId } = req.query;
+  if (!isValidObjectId(userId)) {
+    return res.status(400).json({ message: "Invalid userId" });
+  }
 
+  try {
+    const userNews = await News.find({ author: new Types.ObjectId(userId) });
+
+    if (userNews.length > 0) {
+      res.status(200).json(userNews);
+    } else {
+      res.status(404).json({ message: "No news found for this user." });
+    }
+  } catch (error) {
+    console.error("Error fetching user news:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
 
 module.exports = {
@@ -495,5 +514,6 @@ module.exports = {
   commentController,
   updateNewsStatus,
   fetchNews,
-  fetch
+  fetch,
+  fetchUserNews
 };
