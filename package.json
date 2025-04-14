@@ -3,13 +3,13 @@
     "cloudinary": "^1.41.3",
     "dotenv": "^16.4.7",
     "multer": "^1.4.5-lts.2",
-    "multer-storage-cloudinary": "^4.0.0"
+    "multer-storage-cloudinary": "^4.0.0",
+    "react-quill": "^2.0.0"
   },
   "name": "publicnewsdroid",
   "version": "1.0.0",
   "description": "Public News Droid is a sleek and modern news website that provides users with categorized news in an easy-to-navigate format. This project is built using **React** and styled with **Tailwind CSS**, ensuring a responsive and visually appealing design.",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

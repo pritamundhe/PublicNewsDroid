@@ -11,6 +11,8 @@ import Login from "./components/Authentication/Login";
 import NewsDetail from "./components/News/NewsDetails";
 import AdminDashboard from "./components/Admin/AdminDashboard";
 import AddNews from "./components/News/AddNews";
+import PaymentPage from "./pages/Paymentpage";
+import PaymentPage1 from "./pages/PaymentPage1";
 const socket = io('http://localhost:5000');
 
 function App() {
@@ -39,6 +41,8 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/addnews" element={<AddNews />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/pay" element={<PaymentPage/>}/>
+        <Route path="/pay1" element={<PaymentPage1/>}/>
       </Routes>
     </Router>
   );

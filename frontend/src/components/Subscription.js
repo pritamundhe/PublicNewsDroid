@@ -1,6 +1,8 @@
 import React from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { Link } from "react-router-dom";
+
 
 export default function Subscription() {
   return (
@@ -22,9 +24,11 @@ export default function Subscription() {
               Digital + E-paper subscription so that you don’t miss anything
             </p>
             <p className="text-xl font-bold mb-4">₹142 <span className="text-sm font-medium text-gray-600">/month</span></p>
+            <Link to="/pay">
             <button className="bg-red-600 hover:bg-red-400 text-white py-2 px-4 rounded-md font-semibold mb-5">
               View Plans
             </button>
+            </Link>
             <ul className="text-sm text-gray-700 space-y-2">
               <li>✅ Full access to all journalism of Public news droid</li>
               <li>✅ Access to ePaper archives</li>
@@ -41,9 +45,12 @@ export default function Subscription() {
               All Access + UPSC Essential Monthly Magazine
             </p>
             <p className="text-xl font-bold mb-4">₹167 <span className="text-sm font-medium text-gray-600">/month</span></p>
+            <Link to="/pay1">
             <button className="bg-red-600 hover:bg-red-400 text-white py-2 px-4 rounded-md font-semibold mb-5">
               View Plans
             </button>
+            </Link>
+            
             <ul className="text-sm text-gray-700 space-y-2">
               <li>✅ Download the monthly UPSC Essentials magazine</li>
               <li>✅ Full access to all journalism of Public News Droid</li>
