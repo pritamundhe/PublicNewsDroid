@@ -82,15 +82,6 @@ const AddNews = () => {
             required
           />
 
-          {/* <textarea
-          name="content"
-          placeholder="Content"
-          className="w-full p-3 border rounded-xl"
-          rows="5"
-          value={formData.content}
-          onChange={handleChange}
-          required
-          /> */}
           <ReactQuill
             theme="snow"
             value={formData.content}
