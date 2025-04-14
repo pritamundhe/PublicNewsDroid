@@ -72,10 +72,10 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className=" min-h-screen">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6 bg-gray-100">
         
         {/* Left Sidebar - Top Picks */}
         <aside className="lg:col-span-1 hidden lg:block space-y-4">
