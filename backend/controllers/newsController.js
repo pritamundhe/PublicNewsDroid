@@ -453,7 +453,8 @@ const fetch = async (req, res) => {
     }
 
     // 3. Fetch news with matching code
-    const news = await News.find({ code: userCode });
+    const news = await News.find({ code: userCode })
+      .populate('author', 'username') ;
 
     // 4. Return the news list
     res.status(200).json({ success: true, news });
@@ -484,7 +485,8 @@ const fetchNews = async (req, res) => {
   if (source) filter.author = source;
 
   try {
-    const newsArticles = await News.find(filter).sort({ createdAt: -1 });
+    const newsArticles = await News.find(filter)
+    .populate('author', 'username') .sort({ createdAt: -1 });
     res.status(200).json(newsArticles);
   } catch (error) {
     console.error('Error fetching news:', error);

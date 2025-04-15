@@ -13,8 +13,12 @@ const Navbar = () => {
   }, [])
   return (
     <header className="flex flex-col md:flex-row items-center justify-between px-4 py-4 border-b shadow-sm">
-      <div className="flex items-center space-x-4 text-sm mb-2 md:mb-0">
-        <span>April 8, 2025</span>
+      <div className="flex items-center space-x-4 text-sm mb-2 md:mb-0 font-times">
+        <span>{new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })}</span>
         <a href="#" className="text-red-700 font-semibold">
           e-Paper
         </a>
@@ -27,39 +31,7 @@ const Navbar = () => {
           <span>PUBLIC NEWS DROID</span>
         </div>
 
-        {/* Nav Links */}
-        <nav className="mt-2 flex flex-wrap justify-center gap-4 text-md font-semibold">
-          {[
-            "India",
-            "World",
-            "Movies",
-            "Sport",
-            "Data",
-            "Health",
-            "Opinion",
-            "Science",
-            "Business",
-            "Premium",
-          ].map((item) => (
-            <a
-              key={item}
-              href="#"
-              className={`hover:text-red-700 ${item === "Sport" ? "text-red-700" : ""
-                } flex items-center`}
-            >
-              {item === "Premium" ? (
-                <>
-                  <span className="bg-yellow-400 rounded-full px-2 text-black font-bold text-xs mr-1">
-                    TH
-                  </span>
-                  Premium
-                </>
-              ) : (
-                item
-              )}
-            </a>
-          ))}
-        </nav>
+
       </div>
 
       {/* Top Right: Icons + Actions */}

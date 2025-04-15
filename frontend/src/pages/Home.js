@@ -12,6 +12,8 @@ const Home = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [layoutIndex] = useState(Math.floor(Math.random() * 3)); // Random layout each refresh
   const newsPerPage = 10;
+  const [selectedCategory, setSelectedCategory] = useState("Local");
+
 
   // Get userId from localStorage
   const userId = localStorage.getItem('userId');  // Get userId from localStorage
@@ -22,7 +24,6 @@ const Home = () => {
       fetch(`http://localhost:5000/news/fetch?userid=${userId}`)
         .then(response => response.json())
         .then(data => {
-          // Ensure data is an array before setting it to state
           if (Array.isArray(data)) {
             setNews(data);
           } else {
@@ -38,7 +39,6 @@ const Home = () => {
       fetch(`http://localhost:5000/news/fetch`)
         .then(response => response.json())
         .then(data => {
-          // Ensure data is an array before setting it to state
           if (Array.isArray(data)) {
             setNews(data);
           } else {
@@ -53,14 +53,36 @@ const Home = () => {
     }
   }, [userId]);  // Depend on userId to ensure it's loaded from localStorage
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+  
+
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
+  console.log(news);
 
-  const totalPages = Math.ceil(news.length / newsPerPage);
+  const filteredNews = selectedCategory === "All"
+    ? news
+    : news.filter(item =>
+      item.category
+        ?.split(',')
+        .map(cat => cat.trim().toLowerCase())
+        .includes(selectedCategory.toLowerCase())
+    );
+
+
+  console.log(filteredNews);
+  const totalPages = Math.ceil(filteredNews.length / newsPerPage);
   const startIndex = (currentPage - 1) * newsPerPage;
-  const currentNews = news.slice(startIndex, startIndex + newsPerPage);
+  const currentNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
+
 
   const renderLayout = () => {
     switch (layoutIndex) {
@@ -75,8 +97,42 @@ const Home = () => {
     <div className=" min-h-screen">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6 bg-gray-100">
+      <div className="bg-gray-50 py-2 border-b shadow-sm font-times">
+        {/* Nav Links */}
+        <nav className="mt-2 flex flex-wrap justify-center gap-4 text-md font-semibold">
+          {[
+            "Local",
+            "India",
+            "World",
+            "Movies",
+            "Sport",
+            "Data",
+            "Health",
+            "Opinion",
+            "Science",
+            "Business",
+            "Premium",
+          ].map((item) => (
+            <button
+              key={item}
+              onClick={() => setSelectedCategory(item)}
+              className={`hover:text-red-700 ${selectedCategory === item ? "text-red-700 underline" : ""
+                } flex items-center`}
+            >
+              {item === "Premium" ? (
+                <>
+                  <span className="bg-yellow-400 rounded-full px-2 text-black font-bold text-xs mr-1">TH</span>
+                  Premium
+                </>
+              ) : (
+                item
+              )}
+            </button>
+          ))}
 
+        </nav>
+      </div>
+      <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6 bg-gray-100">
         {/* Left Sidebar - Top Picks */}
         <aside className="lg:col-span-1 hidden lg:block space-y-4">
           <h2 className="text-xl font-bold border-b pb-2">Top Picks</h2>
@@ -108,8 +164,25 @@ const Home = () => {
           ))}
         </aside>
 
-      </main>
+      <div className="flex justify-center items-center my-4 space-x-4 text-sm  ">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          className="px-4 py-2 bg-white border shadow rounded disabled:opacity-50 hover:text-red-800"
+          >
+          Prev
+        </button>
+        <span className="font-semibold ml-20 ">Page <span className="text-red-500"> {currentPage}</span> of {totalPages}</span>
 
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          className="px-4 py-2 bg-white border shadow rounded disabled:opacity-50 hover:text-red-800"
+          >
+          Next
+        </button>
+      </div>
+          </main>
       <Footer />
     </div>
   );
