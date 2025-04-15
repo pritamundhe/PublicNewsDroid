@@ -39,7 +39,7 @@ const LayoutTwo = ({ news, formatDate, startIndex }) => (
               <h2 className="text-lg font-bold mt-2">{item.title}</h2>
 
               {/* Content Preview */}
-              <p className="text-sm">{item.content.slice(0, isBig ? 160 : 100)}...</p>
+              <p className="text-sm">{item.summary}...</p>
 
               {/* Tags */}
               {item.tags?.length > 0 && (

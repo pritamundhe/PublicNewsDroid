@@ -72,6 +72,20 @@ export default function NewsDetail() {
             });
     }, [userId]);
 
+    const handlecomment = async () => {
+        try {
+            const response = await axios.post("http://localhost:5000/news/addcomment", {
+                newsId: id, content: commentText, userId
+            })
+            if (response) {
+                setCommentText("");
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }
+
     return (
         <div>
             <Navbar />
@@ -154,12 +168,7 @@ export default function NewsDetail() {
                                         className="w-full border rounded p-2 mb-2"
                                     />
                                     <button
-                                        onClick={() => {
-                                            if (commentText.trim() !== '') {
-                                                setComments([{ text: commentText }, ...comments]);
-                                                setCommentText('');
-                                            }
-                                        }}
+                                        onClick={handlecomment}
                                         className="bg-black text-white px-4 py-2 rounded mb-6"
                                     >
                                         Post Comment
@@ -168,9 +177,14 @@ export default function NewsDetail() {
                                     <div>
                                         {comments.map((c, i) => (
                                             <div key={i} className="mb-4 border-b pb-2">
+                                                <div className="flex justify-between">
                                                 <div className="font-semibold">{c.userId.username}</div>
                                                 <div className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
-                                                <p className="mt-1 text-gray-800">{c.content}</p>
+                                                </div>
+                                                <p className="mt-1 text-gray-800"><div
+                                                    className=" leading-relaxed"
+                                                    dangerouslySetInnerHTML={{ __html: c?.content }}
+                                                /></p>
                                             </div>
                                         ))}
                                     </div>

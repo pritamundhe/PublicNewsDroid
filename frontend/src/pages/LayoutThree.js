@@ -20,7 +20,7 @@ const LayoutThree = ({ news, formatDate, startIndex }) => (
             <h2 className="text-xl font-semibold text-gray-800 hover:text-red-600 group-hover:underline transition duration-200">
               {item.title}
             </h2>
-            <p className="text-sm text-gray-700">{item.content.slice(0, 100)}...</p>
+            <p className="text-sm text-gray-700">{item.summary}...</p>
             <p className="text-xs text-gray-400">
               By <span className="font-medium">{item.author?.username || "Anonymous"}</span> • {formatDate(item.createdAt)}
             </p>

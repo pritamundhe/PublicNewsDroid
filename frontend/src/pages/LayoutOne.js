@@ -57,7 +57,7 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
               <h2 className="text-lg font-semibold text-gray-800 group-hover:text-red-600 transition duration-200">
                 {item.title}
               </h2>
-              <p className="text-sm text-gray-600">{item.content.slice(0, 100)}...</p>
+              <p className="text-sm text-gray-600">{item.summary.slice(0, 100)}...</p>
 
               {item.keywords?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
