@@ -24,7 +24,7 @@ app.use(express.json());
 const fs = require("fs");
 
 const addNews = async (req, res) => {
-  const { title, content, category, author, images, videos } = req.body;
+  const { title, content, summary, category, author, images, videos } = req.body;
 
   if (!title || !content || !category || !author) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -108,6 +108,7 @@ const addNews = async (req, res) => {
 
     const newNews = new News({
       title,
+      summary,
       content,
       category,
       author,
@@ -202,7 +203,7 @@ const addNews = async (req, res) => {
       }
     }
 
-    res.status(201).json(savedNews);
+    res.status(201).json({ savedNews, success: true });
   } catch (error) {
     console.error("Error saving news:", error);
     res.status(500).send("Server error");
@@ -263,7 +264,10 @@ const commentController = {
         return res.status(400).json({ message: "news ID is required." });
       }
 
-      const comments = await Comment.find({ newsId }).sort({ createdAt: -1 });
+      const comments = await Comment.find({ newsId })
+        .populate('userId', 'username') // Only bring username from User model
+        .sort({ createdAt: -1 });
+
 
       res.status(200).json({ comments });
     } catch (error) {
@@ -508,6 +512,23 @@ const fetchUserNews = async (req, res) => {
   }
 };
 
+const fetchCurrentNews = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const currentNews = await News.findById(id);
+
+    if (!currentNews) {
+      return res.status(404).json({ message: "News not found" });
+    }
+
+    res.status(200).json(currentNews);
+  } catch (err) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 module.exports = {
   addNews,
@@ -515,5 +536,6 @@ module.exports = {
   updateNewsStatus,
   fetchNews,
   fetch,
-  fetchUserNews
+  fetchUserNews,
+  fetchCurrentNews,
 };

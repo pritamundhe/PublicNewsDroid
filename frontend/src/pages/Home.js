@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-
+import { Link } from "react-router-dom";
 import LayoutOne from "./LayoutOne";
 import LayoutTwo from "./LayoutTwo";
 import LayoutThree from "./LayoutThree";
@@ -76,14 +76,16 @@ const Home = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6 bg-gray-100">
-        
+
         {/* Left Sidebar - Top Picks */}
         <aside className="lg:col-span-1 hidden lg:block space-y-4">
           <h2 className="text-xl font-bold border-b pb-2">Top Picks</h2>
           {news.slice(0, 5).map((item, index) => (
             <div key={index} className="bg-white p-2 rounded shadow">
-              <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
-              <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
+              <Link to={`/newsdetail/${item._id}`} key={index}>
+                <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
+                <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
+              </Link>
             </div>
           ))}
         </aside>
@@ -98,8 +100,10 @@ const Home = () => {
           <h2 className="text-xl font-bold border-b pb-2">Latest News</h2>
           {news.slice(-5).reverse().map((item, index) => (
             <div key={index} className="bg-white p-2 rounded shadow">
-              <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
-              <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
+              <Link to={`/newsdetail/${item._id}`} key={index}>
+                <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
+                <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
+              </Link>
             </div>
           ))}
         </aside>
