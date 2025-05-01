@@ -13,6 +13,7 @@ import AdminDashboard from "./components/Admin/AdminDashboard";
 import AddNews from "./components/News/AddNews";
 import PaymentPage from "./pages/Paymentpage";
 import PaymentPage1 from "./pages/PaymentPage1";
+import Epaper from "./pages/Epaper";
 const socket = io('http://localhost:5000');
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/pay" element={<PaymentPage/>}/>
         <Route path="/pay1" element={<PaymentPage1/>}/>
+        <Route path="/epaper" element={<Epaper/>}/>
       </Routes>
     </Router>
   );
