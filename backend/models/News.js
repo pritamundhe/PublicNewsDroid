@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
 
-const PollOptionSchema = new mongoose.Schema({
-  text: { type: String, required: true },
-  votes: { type: Number, default: 0 },
-});
-
 const NewsSchema = new mongoose.Schema({
   title: { type: String, required: true },
   summary: { type: String, required: true },
@@ -42,10 +37,10 @@ const NewsSchema = new mongoose.Schema({
   views: { type: Number, default: 0 },
 
   // 💬 Polls
-  poll: {
-    question: { type: String },
-    options: [PollOptionSchema],
-  },
+    poll: {
+      supportCount: { type: Number, default: 0 },
+      opposeCount: { type: Number, default: 0 }
+    },
 
   // ✅ Moderation
   flaggedByAI: Boolean,

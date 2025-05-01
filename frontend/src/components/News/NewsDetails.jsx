@@ -19,6 +19,7 @@ export default function NewsDetail() {
     const [comments, setComments] = useState([]);
     const [replyText, setReplyText] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
+    const [pollLoading, setPollLoading] = useState(false);
     const userId = localStorage.getItem('userId');
     const { id } = useParams();
     const [currentNews, setCurrentNews] = useState(null);
@@ -118,37 +119,43 @@ export default function NewsDetail() {
     };
 
     const handlePoll = async (type) => {
-        if (userVote === type) type = null;
+        if (pollLoading) return;
+        setPollLoading(true);
+
+        const newVote = userVote === type ? null : type;
 
         try {
             const response = await axios.post("http://localhost:5000/news/updatePoll", {
                 newsId: currentNews._id,
-                type,
+                type: newVote,
             });
 
             if (response) {
-                setUserVote(type);
+                let supportCount = currentNews.poll?.supportCount || 0;
+                let opposeCount = currentNews.poll?.opposeCount || 0;
+
+                if (userVote === 'support') supportCount--;
+                if (userVote === 'oppose') opposeCount--;
+
+                if (newVote === 'support') supportCount++;
+                if (newVote === 'oppose') opposeCount++;
+
                 setCurrentNews(prev => ({
                     ...prev,
                     poll: {
-                        ...prev.poll,
-                        supportCount: type === 'support'
-                            ? prev.poll.supportCount + 1
-                            : userVote === 'support'
-                                ? prev.poll.supportCount - 1
-                                : prev.poll.supportCount,
-                        opposeCount: type === 'oppose'
-                            ? prev.poll.opposeCount + 1
-                            : userVote === 'oppose'
-                                ? prev.poll.opposeCount - 1
-                                : prev.poll.opposeCount,
+                        supportCount,
+                        opposeCount
                     }
                 }));
-                toast.success(`Successfully ${type ? `${type}` : 'removed'} your vote!`);
+
+                setUserVote(newVote);
+                toast.success(`You ${newVote ? `voted ${newVote}` : 'removed your vote'}`);
             }
         } catch (err) {
-            console.log(err);
-            toast.error('Failed to update poll.');
+            console.error(err);
+            toast.error('Failed to update vote.');
+        } finally {
+            setPollLoading(false);
         }
     };
 
@@ -157,7 +164,6 @@ export default function NewsDetail() {
             <Navbar />
             <div className="flex px-60 py-10 gap-4">
                 <div className="max-w-6xl mx-auto font-times text-gray-900 w-3/4">
-                    {/* Breadcrumb and Heading */}
                     <div className="text-sm text-gray-500 mb-6">
                         <span className="hover:underline cursor-pointer text-gray-700">HOME</span> / <span className="hover:underline cursor-pointer text-gray-700">NEWS</span> / <span className="text-red-600 font-semibold">INDIA</span>
                     </div>
@@ -166,7 +172,7 @@ export default function NewsDetail() {
                             <h1 className="text-3xl font-bold leading-snug">{currentNews.title}</h1>
                             <p className="mt-3 text-lg text-gray-700 font-medium">{currentNews.summary}</p>
                             <p className="mt-2 text-sm text-gray-500">
-                                <span className="text-red-600 font-semibold">Published</span> – {new Date(currentNews.createdAt).toLocaleDateString()} IST – {currentNews.location.city}
+                                <span className="text-red-600 font-semibold">Published</span> – {new Date(currentNews.createdAt).toLocaleDateString()} IST – {currentNews.location?.city || 'Unknown'}
                             </p>
 
                             <div className="flex justify-between mt-4 text-gray-600">
@@ -192,7 +198,7 @@ export default function NewsDetail() {
                             </div>
 
                             <div className="mt-2">
-                                <img src={currentNews.images[0]} alt={currentNews.title} className="w-full rounded-lg shadow-lg" />
+                                <img src={currentNews.images?.[0]} alt={currentNews.title} className="w-full rounded-lg shadow-lg" />
                             </div>
 
                             <div className="flex justify-end mt-1 gap-3 text-gray-600 mb-8 pr-4">
@@ -202,39 +208,34 @@ export default function NewsDetail() {
 
                             <div className="text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: currentNews.content }} />
 
-                                {/* Poll Section */}
+                            {/* Poll Section */}
                             <div className="mt-8 border-t pt-6">
-                            <h3 className="text-xl font-semibold mb-4">
-                                🗳️ Poll: Do you support this news?
-                            </h3>
-
-                            <div className="flex border border-gray-400 divide-x divide-gray-400 rounded overflow-hidden font-medium text-black">
-                                
-                                {/* Support Button */}
-                                <button
-                                onClick={() => handlePoll('support')}
-                                className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
-                                    userVote === 'support' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
-                                }`}
-                                >
-                                <BiLike size={20} />
-                                Support ({currentNews.poll?.supportCount ?? 0})
-                                </button>
-
-                                {/* Oppose Button */}
-                                <button
-                                onClick={() => handlePoll('oppose')}
-                                className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
-                                    userVote === 'oppose' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
-                                }`}
-                                >
-                                <BiDislike size={20} />
-                                Oppose ({currentNews.poll?.opposeCount ?? 0})
-                                </button>
-
+                                <h3 className="text-xl font-semibold mb-4">
+                                    🗳️ Poll: Do you support this news?
+                                </h3>
+                                <div className="flex border border-gray-400 divide-x divide-gray-400 rounded overflow-hidden font-medium text-black">
+                                    <button
+                                        onClick={() => handlePoll('support')}
+                                        disabled={pollLoading}
+                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
+                                            userVote === 'support' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
+                                        } ${pollLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <BiLike size={20} />
+                                        Support ({currentNews.poll?.supportCount ?? 0})
+                                    </button>
+                                    <button
+                                        onClick={() => handlePoll('oppose')}
+                                        disabled={pollLoading}
+                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
+                                            userVote === 'oppose' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
+                                        } ${pollLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        <BiDislike size={20} />
+                                        Oppose ({currentNews.poll?.opposeCount ?? 0})
+                                    </button>
+                                </div>
                             </div>
-                            </div>
-
 
                             {/* Comments */}
                             <div className="mt-8 border-t pt-4">
@@ -247,26 +248,23 @@ export default function NewsDetail() {
                                         comments.map((c, i) => (
                                             <div key={i} className="mb-6 border-b pb-2">
                                                 <div className="flex justify-between">
-                                                    <div className="font-semibold">{c.userId.username}</div>
+                                                    <div className="font-semibold">{c.userId?.username || 'Anonymous'}</div>
                                                     <div className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
                                                 </div>
                                                 <div className="leading-relaxed mt-1" dangerouslySetInnerHTML={{ __html: c.content }} />
-                                                
                                                 <div className="flex justify-between items-center mt-2 text-gray-600">
                                                     <div>
                                                         <button onClick={() => setReplyingTo(c._id)} className="text-blue-600 hover:underline">Reply</button>
                                                     </div>
                                                     <div className="flex gap-4">
                                                         <button onClick={() => handleCommentVote(c._id, 'like')} className="hover:text-black">
-                                                        <BiLike size={24} /> {c.likes || 0}
+                                                            <BiLike size={24} /> {c.likes || 0}
                                                         </button>
                                                         <button onClick={() => handleCommentVote(c._id, 'dislike')} className="hover:text-black">
-                                                        <BiDislike size={24} /> {c.dislikes || 0}
+                                                            <BiDislike size={24} /> {c.dislikes || 0}
                                                         </button>
-
                                                     </div>
                                                 </div>
-
                                                 {replyingTo === c._id && (
                                                     <div className="mt-2">
                                                         <ReactQuill theme="snow" value={replyText} onChange={setReplyText} className="w-full border rounded p-2 mb-2" />

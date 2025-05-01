@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const upload=require("../middleware/upload");
-const { addNews,commentController,updateNewsStatus,fetchNews, fetch,fetchUserNews, fetchCurrentNews } = require('../controllers/newsController');  
+const { addNews,commentController,updateNewsStatus,fetchNews, fetch,fetchUserNews, fetchCurrentNews, updatePoll } = require('../controllers/newsController');  
 
 router.post("/add", upload.fields([
     { name: 'images', maxCount: 5 },
@@ -10,6 +10,7 @@ router.post("/add", upload.fields([
 router.post('/addcomment',commentController.createComment);
 router.post('/addcomment/:commentId/like',commentController.likeComment);
 router.post('/addcomment/:commentId/dislike',commentController.dislikeComment);
+router.post('/updatePoll',updatePoll);
 
 router.patch('/update-status', updateNewsStatus);
 

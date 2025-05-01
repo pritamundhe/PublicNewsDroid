@@ -530,9 +530,42 @@ const fetchCurrentNews = async (req, res) => {
   }
 };
 
+const updatePoll = async (req, res) => {
+  const { newsId, type } = req.body;
+
+  if (!newsId || !['support', 'oppose', null].includes(type)) {
+    return res.status(400).json({ message: 'Invalid request body' });
+  }
+
+  try {
+    const news = await News.findById(newsId);
+    if (!news) {
+      return res.status(404).json({ message: 'News not found' });
+    }
+
+    // Initialize if poll object doesn't exist
+    if (!news.poll) {
+      news.poll = { supportCount: 0, opposeCount: 0 };
+    }
+
+    // Update logic: Adjust counts based on `type`
+    if (type === 'support') {
+      news.poll.supportCount = (news.poll.supportCount || 0) + 1;
+    } else if (type === 'oppose') {
+      news.poll.opposeCount = (news.poll.opposeCount || 0) + 1;
+    }
+
+    await news.save();
+    res.status(200).json({ message: 'Poll updated successfully', poll: news.poll });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 
 module.exports = {
+  updatePoll,
   addNews,
   commentController,
   updateNewsStatus,
