@@ -20,7 +20,6 @@ const Home = () => {
 
   useEffect(() => {
     if (userId) {
-      // Fetch news using the userId from localStorage
       fetch(`http://localhost:5000/news/fetch?userid=${userId}`)
         .then(response => response.json())
         .then(data => {
@@ -60,7 +59,7 @@ const Home = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
-  
+
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -96,93 +95,95 @@ const Home = () => {
   return (
     <div className=" min-h-screen">
       <Navbar />
+      <div className="bg-gray-100">
 
-      <div className="bg-gray-50 py-2 border-b shadow-sm font-times">
-        {/* Nav Links */}
-        <nav className="mt-2 flex flex-wrap justify-center gap-4 text-md font-semibold">
-          {[
-            "Local",
-            "India",
-            "World",
-            "Movies",
-            "Sport",
-            "Data",
-            "Health",
-            "Opinion",
-            "Science",
-            "Business",
-            "Premium",
-          ].map((item) => (
+        <div className="bg-gray-50 py-2 border-b shadow-sm font-times">
+          {/* Nav Links */}
+          <nav className="mt-2 flex flex-wrap justify-center gap-4 text-md font-semibold">
+            {[
+              "Local",
+              "India",
+              "World",
+              "Movies",
+              "Sport",
+              "Data",
+              "Health",
+              "Opinion",
+              "Science",
+              "Business",
+              "Premium",
+            ].map((item) => (
+              <button
+                key={item}
+                onClick={() => setSelectedCategory(item)}
+                className={`hover:text-red-700 ${selectedCategory === item ? "text-red-700 underline" : ""
+                  } flex items-center`}
+              >
+                {item === "Premium" ? (
+                  <>
+                    <span className="bg-yellow-400 rounded-full px-2 text-black font-bold text-xs mr-1">TH</span>
+                    Premium
+                  </>
+                ) : (
+                  item
+                )}
+              </button>
+            ))}
+
+          </nav>
+        </div>
+        <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6 bg-gray-100">
+          {/* Left Sidebar - Top Picks */}
+          <aside className="lg:col-span-1 hidden lg:block space-y-4">
+            <h2 className="text-xl font-bold border-b pb-2">Top Picks</h2>
+            {news.slice(0, 5).map((item, index) => (
+              <div key={index} className="bg-white p-2 rounded shadow">
+                <Link to={`/newsdetail/${item._id}`} key={index}>
+                  <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
+                  <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
+                </Link>
+              </div>
+            ))}
+          </aside>
+
+          {/* Main Content */}
+          <section className="lg:col-span-3">
+            {loading ? <p>Loading news...</p> : renderLayout()}
+          </section>
+
+          {/* Right Sidebar - Latest News */}
+          <aside className="lg:col-span-1 hidden lg:block space-y-4">
+            <h2 className="text-xl font-bold border-b pb-2">Latest News</h2>
+            {news.slice(-5).reverse().map((item, index) => (
+              <div key={index} className="bg-white p-2 rounded shadow">
+                <Link to={`/newsdetail/${item._id}`} key={index}>
+                  <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
+                  <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
+                </Link>
+              </div>
+            ))}
+          </aside>
+
+          <div className="flex justify-center items-center my-4 space-x-4 text-sm  ">
             <button
-              key={item}
-              onClick={() => setSelectedCategory(item)}
-              className={`hover:text-red-700 ${selectedCategory === item ? "text-red-700 underline" : ""
-                } flex items-center`}
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-white border shadow rounded disabled:opacity-50 hover:text-red-800"
             >
-              {item === "Premium" ? (
-                <>
-                  <span className="bg-yellow-400 rounded-full px-2 text-black font-bold text-xs mr-1">TH</span>
-                  Premium
-                </>
-              ) : (
-                item
-              )}
+              Prev
             </button>
-          ))}
+            <span className="font-semibold ml-20 ">Page <span className="text-red-500"> {currentPage}</span> of {totalPages}</span>
 
-        </nav>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              className="px-4 py-2 bg-white border shadow rounded disabled:opacity-50 hover:text-red-800"
+            >
+              Next
+            </button>
+          </div>
+        </main>
       </div>
-      <main className="container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6 bg-gray-100">
-        {/* Left Sidebar - Top Picks */}
-        <aside className="lg:col-span-1 hidden lg:block space-y-4">
-          <h2 className="text-xl font-bold border-b pb-2">Top Picks</h2>
-          {news.slice(0, 5).map((item, index) => (
-            <div key={index} className="bg-white p-2 rounded shadow">
-              <Link to={`/newsdetail/${item._id}`} key={index}>
-                <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
-                <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
-              </Link>
-            </div>
-          ))}
-        </aside>
-
-        {/* Main Content */}
-        <section className="lg:col-span-3">
-          {loading ? <p>Loading news...</p> : renderLayout()}
-        </section>
-
-        {/* Right Sidebar - Latest News */}
-        <aside className="lg:col-span-1 hidden lg:block space-y-4">
-          <h2 className="text-xl font-bold border-b pb-2">Latest News</h2>
-          {news.slice(-5).reverse().map((item, index) => (
-            <div key={index} className="bg-white p-2 rounded shadow">
-              <Link to={`/newsdetail/${item._id}`} key={index}>
-                <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
-                <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
-              </Link>
-            </div>
-          ))}
-        </aside>
-
-      <div className="flex justify-center items-center my-4 space-x-4 text-sm  ">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          className="px-4 py-2 bg-white border shadow rounded disabled:opacity-50 hover:text-red-800"
-          >
-          Prev
-        </button>
-        <span className="font-semibold ml-20 ">Page <span className="text-red-500"> {currentPage}</span> of {totalPages}</span>
-
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          className="px-4 py-2 bg-white border shadow rounded disabled:opacity-50 hover:text-red-800"
-          >
-          Next
-        </button>
-      </div>
-          </main>
       <Footer />
     </div>
   );
