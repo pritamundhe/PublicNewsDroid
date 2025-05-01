@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { CiShare1 } from "react-icons/ci";
 import { FaRegCommentAlt } from "react-icons/fa";
 import Navbar from "../Navbar";
@@ -6,63 +6,56 @@ import Footer from "../Footer";
 import { IoPrintSharp } from "react-icons/io5";
 import { BiLike, BiDislike } from "react-icons/bi";
 import SmallNewsCover from "./SmallNewsCover";
-import { useState, useEffect } from "react";
 import toast from 'react-hot-toast';
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-
 export default function NewsDetail() {
     const [news, setNews] = useState([]);
-    const [showComments, setShowComments] = useState(false);
     const [loading, setLoading] = useState(true);
     const [commentText, setCommentText] = useState('');
     const [comments, setComments] = useState([]);
+    const [replyText, setReplyText] = useState('');
+    const [replyingTo, setReplyingTo] = useState(null);
     const userId = localStorage.getItem('userId');
     const { id } = useParams();
     const [currentNews, setCurrentNews] = useState(null);
+    const [userVote, setUserVote] = useState(null);
 
     useEffect(() => {
         const getCurrentNews = async () => {
             try {
                 const response = await axios.get(`http://localhost:5000/news/fetchcurrentnews/${id}`);
                 setCurrentNews(response.data);
-            }
-            catch (err) {
+                setUserVote(response.data.userVote);
+            } catch (err) {
                 console.log(err);
             }
-        }
+        };
         getCurrentNews();
-    }, [id])
+    }, [id]);
 
     useEffect(() => {
+        if (!currentNews) return;
         const getComments = async () => {
-            if (!currentNews) return;
             try {
                 const response = await axios.get(`http://localhost:5000/news/fetchcomments/${currentNews._id}`);
                 setComments(response.data.comments);
-                console.log(response.data.comments);
-            }
-            catch (err) {
+            } catch (err) {
                 console.log(err);
             }
-        }
+        };
         getComments();
-    }, [id])
-
-
+    }, [currentNews]);
 
     useEffect(() => {
         fetch(`http://localhost:5000/news/fetch?userid=${userId}`)
             .then(response => response.json())
             .then(data => {
-                // Ensure data is an array before setting it to state
                 if (Array.isArray(data)) {
                     setNews(data);
-                } else {
-                    console.error('API response is not an array:', data);
                 }
                 setLoading(false);
             })
@@ -72,55 +65,116 @@ export default function NewsDetail() {
             });
     }, [userId]);
 
-    const handlecomment = async () => {
+    const handleComment = async () => {
         try {
             const response = await axios.post("http://localhost:5000/news/addcomment", {
-                newsId: id, content: commentText, userId
-            })
+                newsId: id,
+                content: commentText,
+                userId
+            });
             if (response) {
                 setCommentText("");
+                const updated = await axios.get(`http://localhost:5000/news/fetchcomments/${id}`);
+                setComments(updated.data.comments);
             }
-        }
-        catch (err) {
+        } catch (err) {
             console.log(err);
         }
-    }
+    };
+
+    const handleReply = async (commentId) => {
+        try {
+            const response = await axios.post("http://localhost:5000/news/addreply", {
+                newsId: id,
+                parentCommentId: commentId,
+                content: replyText,
+                userId
+            });
+            if (response) {
+                setReplyText('');
+                setReplyingTo(null);
+                const updated = await axios.get(`http://localhost:5000/news/fetchcomments/${id}`);
+                setComments(updated.data.comments);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const handleCommentVote = async (commentId, type) => {
+        try {
+            const response = await axios.post("http://localhost:5000/news/votecomment", {
+                commentId,
+                userId,
+                type
+            });
+            if (response) {
+                const updated = await axios.get(`http://localhost:5000/news/fetchcomments/${id}`);
+                setComments(updated.data.comments);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const handlePoll = async (type) => {
+        if (userVote === type) type = null;
+
+        try {
+            const response = await axios.post("http://localhost:5000/news/updatePoll", {
+                newsId: currentNews._id,
+                type,
+            });
+
+            if (response) {
+                setUserVote(type);
+                setCurrentNews(prev => ({
+                    ...prev,
+                    poll: {
+                        ...prev.poll,
+                        supportCount: type === 'support'
+                            ? prev.poll.supportCount + 1
+                            : userVote === 'support'
+                                ? prev.poll.supportCount - 1
+                                : prev.poll.supportCount,
+                        opposeCount: type === 'oppose'
+                            ? prev.poll.opposeCount + 1
+                            : userVote === 'oppose'
+                                ? prev.poll.opposeCount - 1
+                                : prev.poll.opposeCount,
+                    }
+                }));
+                toast.success(`Successfully ${type ? `${type}` : 'removed'} your vote!`);
+            }
+        } catch (err) {
+            console.log(err);
+            toast.error('Failed to update poll.');
+        }
+    };
 
     return (
         <div>
             <Navbar />
             <div className="flex px-60 py-10 gap-4">
                 <div className="max-w-6xl mx-auto font-times text-gray-900 w-3/4">
+                    {/* Breadcrumb and Heading */}
                     <div className="text-sm text-gray-500 mb-6">
                         <span className="hover:underline cursor-pointer text-gray-700">HOME</span> / <span className="hover:underline cursor-pointer text-gray-700">NEWS</span> / <span className="text-red-600 font-semibold">INDIA</span>
                     </div>
                     {currentNews ? (
                         <div>
-                            <h1 className="text-3xl font-bold leading-snug ">
-                                {currentNews.title}
-                            </h1>
-
-                            <p className="mt-3 text-lg text-gray-700 font-medium">
-                                {currentNews.summary}
-                            </p>
-
+                            <h1 className="text-3xl font-bold leading-snug">{currentNews.title}</h1>
+                            <p className="mt-3 text-lg text-gray-700 font-medium">{currentNews.summary}</p>
                             <p className="mt-2 text-sm text-gray-500">
                                 <span className="text-red-600 font-semibold">Published</span> – {new Date(currentNews.createdAt).toLocaleDateString()} IST – {currentNews.location.city}
                             </p>
 
                             <div className="flex justify-between mt-4 text-gray-600">
-                                <div className="flex  gap-3 pl-3">
-
+                                <div className="flex gap-3 pl-3">
                                     <button
                                         onClick={() => {
                                             if (navigator.share) {
-                                                navigator
-                                                    .share({
-                                                        title: document.title,
-                                                        url: window.location.href,
-                                                    })
-                                                    .then(() => console.log("Shared successfully"))
-                                                    .catch((err) => console.error("Share failed:", err));
+                                                navigator.share({ title: document.title, url: window.location.href });
                                             } else {
                                                 navigator.clipboard.writeText(window.location.href);
                                                 toast.success("Link copied to clipboard!");
@@ -130,87 +184,117 @@ export default function NewsDetail() {
                                     >
                                         <CiShare1 size={24} />
                                     </button>
-
-                                    <button className="hover:text-black" onClick={() => setShowComments(!showComments)}><FaRegCommentAlt size={18} /></button>
-
+                                    <FaRegCommentAlt size={18} className="hover:text-black cursor-pointer" />
                                 </div>
-                                <button className="hover:text-black pr-3 flex items-center"><IoPrintSharp size={20} /> Print</button>
+                                <button className="hover:text-black pr-3 flex items-center">
+                                    <IoPrintSharp size={20} /> Print
+                                </button>
                             </div>
 
-                            <div className=" mt-2">
-                                <img
-                                    src={currentNews.images[0]}
-                                    alt="Mallikarjun Kharge with Sonia and Rahul Gandhi"
-                                    className="w-full rounded-lg shadow-lg"
-                                />
+                            <div className="mt-2">
+                                <img src={currentNews.images[0]} alt={currentNews.title} className="w-full rounded-lg shadow-lg" />
                             </div>
+
                             <div className="flex justify-end mt-1 gap-3 text-gray-600 mb-8 pr-4">
-
                                 <button className="hover:text-red-500 text-black"><BiLike size={24} /></button>
-
                                 <button className="hover:text-red-500 text-black"><BiDislike size={24} /></button>
                             </div>
-                            <div className="text-lg leading-relaxed">
-                                <div
-                                    className="text-lg leading-relaxed"
-                                    dangerouslySetInnerHTML={{ __html: currentNews?.content }}
-                                />
+
+                            <div className="text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: currentNews.content }} />
+
+                                {/* Poll Section */}
+                            <div className="mt-8 border-t pt-6">
+                            <h3 className="text-xl font-semibold mb-4">
+                                🗳️ Poll: Do you support this news?
+                            </h3>
+
+                            <div className="flex border border-gray-400 divide-x divide-gray-400 rounded overflow-hidden font-medium text-black">
+                                
+                                {/* Support Button */}
+                                <button
+                                onClick={() => handlePoll('support')}
+                                className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
+                                    userVote === 'support' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
+                                }`}
+                                >
+                                <BiLike size={20} />
+                                Support ({currentNews.poll?.supportCount ?? 0})
+                                </button>
+
+                                {/* Oppose Button */}
+                                <button
+                                onClick={() => handlePoll('oppose')}
+                                className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
+                                    userVote === 'oppose' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
+                                }`}
+                                >
+                                <BiDislike size={20} />
+                                Oppose ({currentNews.poll?.opposeCount ?? 0})
+                                </button>
 
                             </div>
-                            {showComments && (
-                                <div className="mt-8 border-t pt-4">
-                                    <h3 className="text-xl font-semibold mb-4">Join the Conversation</h3>
+                            </div>
 
-                                    <ReactQuill
-                                        theme="snow"
-                                        value={commentText}
-                                        onChange={(value) => setCommentText(value)}
-                                        className="w-full border rounded p-2 mb-2"
-                                    />
-                                    <button
-                                        onClick={handlecomment}
-                                        className="bg-black text-white px-4 py-2 rounded mb-6"
-                                    >
-                                        Post Comment
-                                    </button>
 
-                                    <div>
-                                        {comments.map((c, i) => (
-                                            <div key={i} className="mb-4 border-b pb-2">
+                            {/* Comments */}
+                            <div className="mt-8 border-t pt-4">
+                                <h3 className="text-xl font-semibold mb-4">Join the Conversation</h3>
+                                <ReactQuill theme="snow" value={commentText} onChange={setCommentText} className="w-full border rounded p-2 mb-2" />
+                                <button onClick={handleComment} className="bg-black text-white px-4 py-2 rounded mb-6">Post Comment</button>
+
+                                <div>
+                                    {comments.length > 0 ? (
+                                        comments.map((c, i) => (
+                                            <div key={i} className="mb-6 border-b pb-2">
                                                 <div className="flex justify-between">
-                                                <div className="font-semibold">{c.userId.username}</div>
-                                                <div className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
+                                                    <div className="font-semibold">{c.userId.username}</div>
+                                                    <div className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
                                                 </div>
-                                                <p className="mt-1 text-gray-800"><div
-                                                    className=" leading-relaxed"
-                                                    dangerouslySetInnerHTML={{ __html: c?.content }}
-                                                /></p>
+                                                <div className="leading-relaxed mt-1" dangerouslySetInnerHTML={{ __html: c.content }} />
+                                                
+                                                <div className="flex justify-between items-center mt-2 text-gray-600">
+                                                    <div>
+                                                        <button onClick={() => setReplyingTo(c._id)} className="text-blue-600 hover:underline">Reply</button>
+                                                    </div>
+                                                    <div className="flex gap-4">
+                                                        <button onClick={() => handleCommentVote(c._id, 'like')} className="hover:text-black">
+                                                        <BiLike size={24} /> {c.likes || 0}
+                                                        </button>
+                                                        <button onClick={() => handleCommentVote(c._id, 'dislike')} className="hover:text-black">
+                                                        <BiDislike size={24} /> {c.dislikes || 0}
+                                                        </button>
+
+                                                    </div>
+                                                </div>
+
+                                                {replyingTo === c._id && (
+                                                    <div className="mt-2">
+                                                        <ReactQuill theme="snow" value={replyText} onChange={setReplyText} className="w-full border rounded p-2 mb-2" />
+                                                        <button onClick={() => handleReply(c._id)} className="bg-blue-600 text-white px-3 py-1 rounded">Submit Reply</button>
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
-                                    </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500">No comments yet. Be the first to share your thoughts!</p>
+                                    )}
                                 </div>
-                            )}
-
-
+                            </div>
                         </div>
                     ) : (
                         <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
                     )}
-
-
                 </div>
-                <div className=" w-1/4">
-                    <div >
-                        <h3 className="text-lg font-bold font-times text-red-600 mb-1">Read More</h3>
-                        <h2 className='bg-gray-400 h-[1px] rounded-lg w-full'></h2>
-                        {news.slice(0, 5).map((item, index) => (
-                            <div key={index}>
-                                <Link to={`/newsdetail/${item._id}`} key={index}>
-                                    <SmallNewsCover title={item.title} />
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
+
+                {/* Sidebar */}
+                <div className="w-1/4">
+                    <h3 className="text-lg font-bold font-times text-red-600 mb-1">Read More</h3>
+                    <hr className="bg-gray-400 h-[1px] rounded-lg w-full mb-4" />
+                    {news.slice(0, 5).map((item, index) => (
+                        <Link to={`/newsdetail/${item._id}`} key={index}>
+                            <SmallNewsCover title={item.title} />
+                        </Link>
+                    ))}
                 </div>
             </div>
             <Footer />
