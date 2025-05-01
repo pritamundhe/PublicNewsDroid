@@ -19,7 +19,7 @@ const Navbar = () => {
           month: 'long',
           day: 'numeric'
         })}</span>
-        <a href="#" className="text-red-700 font-semibold">
+        <a href="/epaper" className="text-red-700 font-semibold">
           e-Paper
         </a>
       </div>
