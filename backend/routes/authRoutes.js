@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { resetPassword } = require('../controllers/authController');
-const { sendPasswordResetEmail,register,login,updateUserFcmToken,userData } = require('../controllers/authController');
+const { sendPasswordResetEmail,register,login,updateUserFcmToken,userData,updateUserProfile } = require('../controllers/authController');
 
 
 router.post('/reset', sendPasswordResetEmail);
@@ -11,5 +11,7 @@ router.post('/login',login);
 router.post('/updateuserfcmtoken',updateUserFcmToken);
 
 router.get('/userdata',userData);
+
+router.put('/updateuserprofile',updateUserProfile);
 
 module.exports = router;

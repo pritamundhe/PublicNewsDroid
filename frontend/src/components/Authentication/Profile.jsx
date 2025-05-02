@@ -30,7 +30,16 @@ const Profile = () => {
                 const response = await axios.get("http://localhost:5000/users/userdata", {
                     params: { userId: userId }
                 });
-                setFormData((prev) => ({ ...prev, email: response.data.email }));
+                setFormData((prev) => ({
+                    ...prev,
+                    email: response.data.email || '',
+                    mobile: response.data.mobile || '',
+                    firstName: response.data.firstName || '',
+                    lastName: response.data.lastName || '',
+                    dob: response.data.dob || { day: '', month: '', year: '' },
+                    gender: response.data.gender || '',
+                    city: response.data.city || '',
+                }));
 
             } catch (err) {
                 console.log("Error fetching user data", err);
@@ -75,11 +84,25 @@ const Profile = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Updated Data:', formData);
-        alert('Profile updated successfully!');
+        try {
+            const response = await axios.put("http://localhost:5000/users/updateuserprofile", {
+                userId,
+                ...formData
+            });
+
+            if (response.data.success) {
+                alert("Profile updated successfully!");
+            } else {
+                alert("Failed to update profile.");
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            alert("An error occurred while updating profile.");
+        }
     };
+
     const handleReset = async () => {
         setLoading(true); // start loading
         try {
@@ -188,7 +211,7 @@ const Profile = () => {
                                     <div className="text-center mt-6">
                                         <button type="submit" className="bg-white border px-8 py-2 rounded-xl hover:bg-blue-100 font-semibold">UPDATE</button>
                                     </div>
-                                    <p className="text-red-600 mt-4 cursor-pointer hover:underline text-sm ml-96 pl-40">Delete Your Account</p>
+                                    <p className="text-white bg-red-500 w-fit mt-4 cursor-pointer hover:bg-red-400 text-sm ml-2 px-3 py-1 rounded-sm ">Delete Your Account</p>
                                 </form>
                             </>
                         ) : activeTab === "news" ?
@@ -240,7 +263,7 @@ const Profile = () => {
                                 )
                                 ) : activeTab === "authors" ?
                                     (
-                                        <>Authors</>
+                                        <>Authors <p>This feature is being updated.</p></>
                                     ) :
                                     (
                                         <div>Logout</div>
