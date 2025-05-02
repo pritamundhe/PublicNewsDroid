@@ -52,7 +52,13 @@ const reactivateUser = async (req, res) => {
 
 const getFlaggedContent = async (req, res) => {
     try {
-        const flaggedNews = await News.find({ flaggedByAI: true }).sort({ createdAt: -1 });
+        const flaggedNews = await News.find({ flaggedByAI: true })
+            .sort({ createdAt: -1 })
+            .populate({
+                path: 'author',
+                select: 'username'
+            });
+
 
         res.status(200).json(flaggedNews);
     } catch (error) {

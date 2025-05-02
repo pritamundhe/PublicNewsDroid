@@ -170,7 +170,7 @@ export default function NewsDetail() {
             <div className="flex px-60 py-10 gap-4">
                 <div className="max-w-6xl mx-auto font-times text-gray-900 w-3/4">
                     <div className="text-sm text-gray-500 mb-6">
-                        <span className="hover:underline cursor-pointer text-gray-700">HOME</span> / <span className="hover:underline cursor-pointer text-gray-700">NEWS</span> / <span className="text-red-600 font-semibold">INDIA</span>
+                        <span className="hover:underline cursor-pointer text-gray-700">HOME</span> / <Link to='/'><span className="hover:underline cursor-pointer text-red-500">NEWS</span> </Link>
                     </div>
 
                     {currentNews ? (
