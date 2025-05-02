@@ -37,10 +37,16 @@ const NewsSchema = new mongoose.Schema({
   views: { type: Number, default: 0 },
 
   // 💬 Polls
-    poll: {
-      supportCount: { type: Number, default: 0 },
-      opposeCount: { type: Number, default: 0 }
-    },
+  poll: {
+    supportCount: { type: Number, default: 0 },
+    opposeCount: { type: Number, default: 0 },
+    votes: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        type: { type: String, enum: ['support', 'oppose'] }
+      }
+    ]
+  },  
 
   // ✅ Moderation
   flaggedByAI: Boolean,

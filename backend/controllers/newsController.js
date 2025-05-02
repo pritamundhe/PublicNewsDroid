@@ -522,9 +522,9 @@ const fetchCurrentNews = async (req, res) => {
 };
 
 const updatePoll = async (req, res) => {
-  const { newsId, type } = req.body;
+  const { newsId, type, userId } = req.body;
 
-  if (!newsId || !['support', 'oppose', null].includes(type)) {
+  if (!newsId || !userId || !['support', 'oppose'].includes(type)) {
     return res.status(400).json({ message: 'Invalid request body' });
   }
 
@@ -534,25 +534,33 @@ const updatePoll = async (req, res) => {
       return res.status(404).json({ message: 'News not found' });
     }
 
-    // Initialize if poll object doesn't exist
     if (!news.poll) {
-      news.poll = { supportCount: 0, opposeCount: 0 };
+      news.poll = { supportCount: 0, opposeCount: 0, votes: [] };
     }
 
-    // Update logic: Adjust counts based on `type`
-    if (type === 'support') {
-      news.poll.supportCount = (news.poll.supportCount || 0) + 1;
-    } else if (type === 'oppose') {
-      news.poll.opposeCount = (news.poll.opposeCount || 0) + 1;
+    const existingVoteIndex = news.poll.votes.findIndex(v => v.userId.toString() === userId);
+
+    if (existingVoteIndex !== -1) {
+      return res.status(400).json({ message: 'You have already voted on this poll' });
     }
+
+    if (type === 'support') {
+      news.poll.supportCount += 1;
+    } else if (type === 'oppose') {
+      news.poll.opposeCount += 1;
+    }
+
+    news.poll.votes.push({ userId, type });
 
     await news.save();
-    res.status(200).json({ message: 'Poll updated successfully', poll: news.poll });
+    return res.status(200).json({ message: 'Vote recorded successfully', poll: news.poll });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 const incrementViews = async (req, res) => {
   try {

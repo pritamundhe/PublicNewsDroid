@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import ReactQuill from 'react-quill';
+import TruthMeter from "../TruthMeter";
 import 'react-quill/dist/quill.snow.css';
 
 export default function NewsDetail() {
@@ -128,6 +129,7 @@ export default function NewsDetail() {
             const response = await axios.post("http://localhost:5000/news/updatePoll", {
                 newsId: currentNews._id,
                 type: newVote,
+                userId
             });
 
             if (response) {
@@ -211,21 +213,6 @@ export default function NewsDetail() {
 
                             <div className="text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: currentNews.content }} />
 
-                            {/* Poll Section */}
-                            <div className="mt-8 border-t pt-6">
-                                <h3 className="text-xl font-semibold mb-4">🗳️ Poll: Do you support this news?</h3>
-                                <div className="flex border border-gray-400 divide-x divide-gray-400 rounded overflow-hidden font-medium text-black">
-                                    <button onClick={() => handlePoll('support')} disabled={pollLoading}
-                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 ${userVote === 'support' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
-                                        <BiLike size={20} /> Support ({currentNews.poll?.supportCount ?? 0})
-                                    </button>
-                                    <button onClick={() => handlePoll('oppose')} disabled={pollLoading}
-                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 ${userVote === 'oppose' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
-                                        <BiDislike size={20} /> Oppose ({currentNews.poll?.opposeCount ?? 0})
-                                    </button>
-                                </div>
-                            </div>
-
                             {/* Comments */}
                             <div className="mt-8 border-t pt-4">
                                 <h3 className="text-xl font-semibold mb-4">Join the Conversation</h3>
@@ -262,7 +249,7 @@ export default function NewsDetail() {
                 </div>
 
                 {/* Sidebar */}
-                <div className="w-1/4">
+                <div className="w-1/3">
                     <h3 className="text-lg font-bold font-times text-red-600 mb-1">Read More</h3>
                     <hr className="bg-gray-400 h-[1px] rounded-lg w-full mb-4" />
                     {filteredNews.length > 0 ? (
@@ -274,6 +261,29 @@ export default function NewsDetail() {
                     ) : (
                         <p className="text-gray-500">No related news found.</p>
                     )}
+                    {/* Poll Section */}
+                    <div className="mt-8 border-t pt-6">
+                        <h3 className="text-xl font-semibold mb-4">Do you support this news?</h3>
+                        <div className="flex border divide-x rounded overflow-hidden text-black">
+                            <button onClick={() => handlePoll('support')} disabled={pollLoading}
+                                className={`w-1/2 py-3 flex justify-center gap-2 ${userVote === 'support' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
+                                <BiLike /> Support ({currentNews?.poll?.supportCount ?? 0})
+                            </button>
+                            <button onClick={() => handlePoll('oppose')} disabled={pollLoading}
+                                className={`w-1/2 py-3 flex justify-center gap-2 ${userVote === 'oppose' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
+                                <BiDislike /> Oppose ({currentNews?.poll?.opposeCount ?? 0})
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Truth Meter */}
+                    <div className="mt-8">
+                        <TruthMeter 
+                            supportCount={currentNews?.poll?.supportCount ?? 0}
+                            opposeCount={currentNews?.poll?.opposeCount ?? 0}
+                        />
+                    </div>
+
                 </div>
             </div>
             <Footer />
