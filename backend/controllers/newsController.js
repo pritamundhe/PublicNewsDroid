@@ -454,9 +454,8 @@ const fetch = async (req, res) => {
 
     // 3. Fetch news with matching code
     const news = await News.find({ code: userCode })
-      .populate('author', 'username') ;
+      .populate('author', 'username');
 
-    // 4. Return the news list
     res.status(200).json({ success: true, news });
   } catch (error) {
     console.error("Error fetching news:", error);
@@ -486,7 +485,7 @@ const fetchNews = async (req, res) => {
 
   try {
     const newsArticles = await News.find(filter)
-    .populate('author', 'username') .sort({ createdAt: -1 });
+      .populate('author', 'username').sort({ createdAt: -1 });
     res.status(200).json(newsArticles);
   } catch (error) {
     console.error('Error fetching news:', error);
@@ -502,7 +501,6 @@ const fetchUserNews = async (req, res) => {
 
   try {
     const userNews = await News.find({ author: new Types.ObjectId(userId) });
-
     if (userNews.length > 0) {
       res.status(200).json(userNews);
     } else {
@@ -563,6 +561,42 @@ const updatePoll = async (req, res) => {
   }
 };
 
+const incrementViews = async (req, res) => {
+  try {
+    const newsId = req.params.newsId;
+    const updatedNews = await News.findByIdAndUpdate(
+      newsId,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+    res.status(200).json({success:true});
+  } catch (error) {
+    console.error('Error incrementing views:', error);
+    res.status(500).json({ error: 'Failed to increment views' });
+  }
+}
+const getHighlights = async (req, res) => {
+  try {
+    const topPicks = await News.find({})
+      .sort({ views: -1 })
+      .limit(5)
+      .populate('author', 'username');
+
+    const latestNews = await News.find({})
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('author', 'username');
+
+    res.status(200).json({
+      success: true,
+      topPicks,
+      latestNews
+    });
+  } catch (error) {
+    console.error("Error fetching highlights:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 module.exports = {
   updatePoll,
@@ -573,4 +607,6 @@ module.exports = {
   fetch,
   fetchUserNews,
   fetchCurrentNews,
+  incrementViews,
+  getHighlights
 };

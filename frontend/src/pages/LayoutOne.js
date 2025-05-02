@@ -2,11 +2,24 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
 
+const incrementView = async (newsId) => {
+    try {
+      await fetch(`http://localhost:5000/news/increment-view/${newsId}`, {
+        method: 'PUT',
+      });
+    } catch (error) {
+      console.error("Failed to increment view:", error);
+    }
+  };
+
 const LayoutOne = ({ news, formatDate, startIndex }) => (
   <div className="space-y-12">
     {/* Hero Section */}
     {news[0] && (
-      <Link to={`/newsdetail/${news[0]._id}`}>
+      <Link
+        to={`/newsdetail/${news[0]._id}`}
+        onClick={() => incrementView(news[0]._id)}
+      >
         <div className="relative h-[450px] overflow-hidden shadow-lg rounded-xl cursor-pointer">
           <img
             src={`https://picsum.photos/800/400?random=${startIndex}`}
@@ -36,7 +49,11 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
     {/* News Cards Section */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {news.slice(1).map((item, index) => (
-        <Link to={`/newsdetail/${item._id}`} key={index}>
+        <Link
+          to={`/newsdetail/${item._id}`}
+          onClick={() => incrementView(item._id)}
+          key={index}
+        >
           <div className="group bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
             <img
               src={`https://picsum.photos/400/300?random=${startIndex + index + 1}`}
