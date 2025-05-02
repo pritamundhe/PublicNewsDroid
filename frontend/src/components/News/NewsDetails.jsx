@@ -20,10 +20,11 @@ export default function NewsDetail() {
     const [replyText, setReplyText] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
     const [pollLoading, setPollLoading] = useState(false);
-    const userId = localStorage.getItem('userId');
-    const { id } = useParams();
     const [currentNews, setCurrentNews] = useState(null);
     const [userVote, setUserVote] = useState(null);
+
+    const userId = localStorage.getItem('userId');
+    const { id } = useParams();
 
     useEffect(() => {
         const getCurrentNews = async () => {
@@ -121,7 +122,6 @@ export default function NewsDetail() {
     const handlePoll = async (type) => {
         if (pollLoading) return;
         setPollLoading(true);
-
         const newVote = userVote === type ? null : type;
 
         try {
@@ -142,10 +142,7 @@ export default function NewsDetail() {
 
                 setCurrentNews(prev => ({
                     ...prev,
-                    poll: {
-                        supportCount,
-                        opposeCount
-                    }
+                    poll: { supportCount, opposeCount }
                 }));
 
                 setUserVote(newVote);
@@ -159,6 +156,14 @@ export default function NewsDetail() {
         }
     };
 
+    // Filter sidebar news by keyword match
+    const filteredNews = currentNews && currentNews.keywords?.length > 0
+        ? news.filter(item =>
+            item._id !== currentNews._id &&
+            item.keywords?.some(kw => currentNews.keywords.includes(kw))
+        )
+        : [];
+
     return (
         <div>
             <Navbar />
@@ -167,6 +172,7 @@ export default function NewsDetail() {
                     <div className="text-sm text-gray-500 mb-6">
                         <span className="hover:underline cursor-pointer text-gray-700">HOME</span> / <span className="hover:underline cursor-pointer text-gray-700">NEWS</span> / <span className="text-red-600 font-semibold">INDIA</span>
                     </div>
+
                     {currentNews ? (
                         <div>
                             <h1 className="text-3xl font-bold leading-snug">{currentNews.title}</h1>
@@ -177,22 +183,19 @@ export default function NewsDetail() {
 
                             <div className="flex justify-between mt-4 text-gray-600">
                                 <div className="flex gap-3 pl-3">
-                                    <button
-                                        onClick={() => {
-                                            if (navigator.share) {
-                                                navigator.share({ title: document.title, url: window.location.href });
-                                            } else {
-                                                navigator.clipboard.writeText(window.location.href);
-                                                toast.success("Link copied to clipboard!");
-                                            }
-                                        }}
-                                        className="hover:text-black"
-                                    >
+                                    <button onClick={() => {
+                                        if (navigator.share) {
+                                            navigator.share({ title: document.title, url: window.location.href });
+                                        } else {
+                                            navigator.clipboard.writeText(window.location.href);
+                                            toast.success("Link copied to clipboard!");
+                                        }
+                                    }}>
                                         <CiShare1 size={24} />
                                     </button>
-                                    <FaRegCommentAlt size={18} className="hover:text-black cursor-pointer" />
+                                    <FaRegCommentAlt size={18} className="cursor-pointer" />
                                 </div>
-                                <button className="hover:text-black pr-3 flex items-center">
+                                <button className="flex items-center">
                                     <IoPrintSharp size={20} /> Print
                                 </button>
                             </div>
@@ -210,29 +213,15 @@ export default function NewsDetail() {
 
                             {/* Poll Section */}
                             <div className="mt-8 border-t pt-6">
-                                <h3 className="text-xl font-semibold mb-4">
-                                    🗳️ Poll: Do you support this news?
-                                </h3>
+                                <h3 className="text-xl font-semibold mb-4">🗳️ Poll: Do you support this news?</h3>
                                 <div className="flex border border-gray-400 divide-x divide-gray-400 rounded overflow-hidden font-medium text-black">
-                                    <button
-                                        onClick={() => handlePoll('support')}
-                                        disabled={pollLoading}
-                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
-                                            userVote === 'support' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
-                                        } ${pollLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        <BiLike size={20} />
-                                        Support ({currentNews.poll?.supportCount ?? 0})
+                                    <button onClick={() => handlePoll('support')} disabled={pollLoading}
+                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 ${userVote === 'support' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
+                                        <BiLike size={20} /> Support ({currentNews.poll?.supportCount ?? 0})
                                     </button>
-                                    <button
-                                        onClick={() => handlePoll('oppose')}
-                                        disabled={pollLoading}
-                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 transition duration-200 ${
-                                            userVote === 'oppose' ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
-                                        } ${pollLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        <BiDislike size={20} />
-                                        Oppose ({currentNews.poll?.opposeCount ?? 0})
+                                    <button onClick={() => handlePoll('oppose')} disabled={pollLoading}
+                                        className={`flex items-center justify-center gap-2 w-1/2 px-6 py-3 ${userVote === 'oppose' ? 'bg-gray-200' : 'hover:bg-gray-100'}`}>
+                                        <BiDislike size={20} /> Oppose ({currentNews.poll?.opposeCount ?? 0})
                                     </button>
                                 </div>
                             </div>
@@ -244,55 +233,47 @@ export default function NewsDetail() {
                                 <button onClick={handleComment} className="bg-black text-white px-4 py-2 rounded mb-6">Post Comment</button>
 
                                 <div>
-                                    {comments.length > 0 ? (
-                                        comments.map((c, i) => (
-                                            <div key={i} className="mb-6 border-b pb-2">
-                                                <div className="flex justify-between">
-                                                    <div className="font-semibold">{c.userId?.username || 'Anonymous'}</div>
-                                                    <div className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
-                                                </div>
-                                                <div className="leading-relaxed mt-1" dangerouslySetInnerHTML={{ __html: c.content }} />
-                                                <div className="flex justify-between items-center mt-2 text-gray-600">
-                                                    <div>
-                                                        <button onClick={() => setReplyingTo(c._id)} className="text-blue-600 hover:underline">Reply</button>
-                                                    </div>
-                                                    <div className="flex gap-4">
-                                                        <button onClick={() => handleCommentVote(c._id, 'like')} className="hover:text-black">
-                                                            <BiLike size={24} /> {c.likes || 0}
-                                                        </button>
-                                                        <button onClick={() => handleCommentVote(c._id, 'dislike')} className="hover:text-black">
-                                                            <BiDislike size={24} /> {c.dislikes || 0}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                {replyingTo === c._id && (
-                                                    <div className="mt-2">
-                                                        <ReactQuill theme="snow" value={replyText} onChange={setReplyText} className="w-full border rounded p-2 mb-2" />
-                                                        <button onClick={() => handleReply(c._id)} className="bg-blue-600 text-white px-3 py-1 rounded">Submit Reply</button>
-                                                    </div>
-                                                )}
+                                    {comments.length > 0 ? comments.map((c, i) => (
+                                        <div key={i} className="mb-6 border-b pb-2">
+                                            <div className="flex justify-between">
+                                                <div className="font-semibold">{c.userId?.username || 'Anonymous'}</div>
+                                                <div className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</div>
                                             </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-gray-500">No comments yet. Be the first to share your thoughts!</p>
-                                    )}
+                                            <div className="mt-1" dangerouslySetInnerHTML={{ __html: c.content }} />
+                                            <div className="flex justify-between items-center mt-2 text-gray-600">
+                                                <button onClick={() => setReplyingTo(c._id)} className="text-blue-600 hover:underline">Reply</button>
+                                                <div className="flex gap-4">
+                                                    <button onClick={() => handleCommentVote(c._id, 'like')}><BiLike size={24} /> {c.likes || 0}</button>
+                                                    <button onClick={() => handleCommentVote(c._id, 'dislike')}><BiDislike size={24} /> {c.dislikes || 0}</button>
+                                                </div>
+                                            </div>
+                                            {replyingTo === c._id && (
+                                                <div className="mt-2">
+                                                    <ReactQuill theme="snow" value={replyText} onChange={setReplyText} className="w-full border rounded p-2 mb-2" />
+                                                    <button onClick={() => handleReply(c._id)} className="bg-blue-600 text-white px-3 py-1 rounded">Submit Reply</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )) : <p className="text-gray-500">No comments yet. Be the first to share your thoughts!</p>}
                                 </div>
                             </div>
                         </div>
-                    ) : (
-                        <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>
-                    )}
+                    ) : <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mt-4"></div>}
                 </div>
 
                 {/* Sidebar */}
                 <div className="w-1/4">
                     <h3 className="text-lg font-bold font-times text-red-600 mb-1">Read More</h3>
                     <hr className="bg-gray-400 h-[1px] rounded-lg w-full mb-4" />
-                    {news.slice(0, 5).map((item, index) => (
-                        <Link to={`/newsdetail/${item._id}`} key={index}>
-                            <SmallNewsCover title={item.title} />
-                        </Link>
-                    ))}
+                    {filteredNews.length > 0 ? (
+                        filteredNews.slice(0, 5).map((item, index) => (
+                            <Link to={`/newsdetail/${item._id}`} key={index}>
+                                <SmallNewsCover title={item.title} />
+                            </Link>
+                        ))
+                    ) : (
+                        <p className="text-gray-500">No related news found.</p>
+                    )}
                 </div>
             </div>
             <Footer />
