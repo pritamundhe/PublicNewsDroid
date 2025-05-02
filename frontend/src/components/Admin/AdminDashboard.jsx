@@ -40,6 +40,7 @@ const AdminDashboard = () => {
             try {
                 const response = await axios.get('http://localhost:5000/admin/flagged');
                 setFlaggedContent(response.data);
+                console.log(flaggedContent)
             } catch (error) {
                 console.error('Error fetching flagged content:', error);
             }
@@ -71,6 +72,7 @@ const AdminDashboard = () => {
     const [formData, setFormData] = useState({
         title: '',
         content: '',
+        summary: '',
         category: '',
     });
 
@@ -118,7 +120,7 @@ const AdminDashboard = () => {
                 },
             });
             setMessage('News submitted successfully!');
-            setFormData({ title: '', content: '', category: '' });
+            setFormData({ title: '', content: '', category: '', summary: '' });
             setImages([]);
             setVideos([]);
         } catch (error) {
@@ -180,7 +182,6 @@ const AdminDashboard = () => {
                                 <div className="bg-white rounded shadow p-4">
                                     <div className="flex justify-between items-center mb-4">
                                         <h3 className="font-semibold text-gray-700">Flagged Content</h3>
-                                        <span className="text-blue-600 cursor-pointer">Manage</span>
                                     </div>
                                     <div className="overflow-y-auto max-h-48">
                                         {flaggedContent.length > 0 ? (
@@ -188,7 +189,8 @@ const AdminDashboard = () => {
                                                 <div key={item._id || index} className="border-b py-2">
                                                     <div className="font-medium">{item.title || 'Untitled'}</div>
                                                     <div className="text-sm text-gray-600">Reason: {item.flaggedReason || 'Not specified'}</div>
-                                                    <div className={`text-sm ${item.status === 'pending' ? 'text-orange-500' : 'text-green-600'}`}>
+                                                    <div className="text-sm text-gray-600 flex">Author: <p className='underline'>   {item.author.username || 'Unknown'}</p></div>
+                                                    <div className={`text-sm ${item.status === 'pending' ? 'text-orange-500' : 'text-red-600'}`}>
                                                         Status: {item.status}
                                                     </div>
                                                 </div>
@@ -276,6 +278,15 @@ const AdminDashboard = () => {
                                         placeholder="Title"
                                         className="w-full p-3 border rounded-xl"
                                         value={formData.title}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                    <input
+                                        type="Summary"
+                                        name="summary"
+                                        placeholder="Summary"
+                                        className="w-full p-3 border rounded-xl"
+                                        value={formData.summary}
                                         onChange={handleChange}
                                         required
                                     />
