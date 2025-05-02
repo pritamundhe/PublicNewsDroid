@@ -24,7 +24,8 @@ const Home = () => {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          setNews(data);
+          const approvedNews = data.filter((item) => item.status != "Rejected");
+          setNews(approvedNews);
         } else {
           console.error("API response is not an array:", data);
         }
@@ -41,8 +42,9 @@ const Home = () => {
       .get("http://localhost:5000/news/gethighlights")
       .then((res) => {
         if (res.data.success) {
-          setTopPicks(res.data.topPicks);
-          setLatestNews(res.data.latestNews);
+          const filterValid = (arr) => arr.filter((item) => item.status != "Rejected");
+          setTopPicks(filterValid(res.data.topPicks));
+          setLatestNews(filterValid(res.data.latestNews));
         }
       })
       .catch((err) => {
@@ -58,19 +60,30 @@ const Home = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
 
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    return new Date(dateString).toLocaleDateString("en-US", options);
+  const timeAgo = (dateString) => {
+    const now = new Date();
+    const past = new Date(dateString);
+    const seconds = Math.floor((now - past) / 1000);
+
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    const days = Math.floor(hours / 24);
+    return `${days} day${days > 1 ? "s" : ""} ago`;
   };
 
   const filteredNews =
     selectedCategory === "All"
-      ? news
-      : news.filter((item) =>
-          item.category
-            ?.split(",")
-            .map((cat) => cat.trim().toLowerCase())
-            .includes(selectedCategory.toLowerCase())
+      ? news.filter((item) => item.status != "Rejected")
+      : news.filter(
+          (item) =>
+            item.status !== "Rejected" &&
+            item.category
+              ?.split(",")
+              .map((cat) => cat.trim().toLowerCase())
+              .includes(selectedCategory.toLowerCase())
         );
 
   const totalPages = Math.ceil(filteredNews.length / newsPerPage);
@@ -106,7 +119,7 @@ const Home = () => {
               >
                 {item === "Premium" ? (
                   <>
-                    <span className="bg-yellow-400 rounded-full px-2 text-black font-bold text-xs mr-1">
+                    <span className="bg-yellow-400 px-2 text-black font-bold text-xs mr-1">
                       TH
                     </span>
                     Premium
@@ -124,7 +137,9 @@ const Home = () => {
             {/* Left Side */}
             <main className="flex-1">
               <header className="mb-6">
-                <h1 className="text-3xl font-medium text-[#202124]">Your briefing</h1>
+                <h1 className="text-3xl font-medium text-[#202124]">
+                  Your briefing
+                </h1>
                 <p className="text-base text-[#5f6368] mt-1">
                   {new Date().toLocaleDateString("en-US", {
                     weekday: "long",
@@ -135,7 +150,7 @@ const Home = () => {
               </header>
 
               {/* Top Stories */}
-              <section className="bg-white rounded-2xl p-4 mb-6 border border-transparent">
+              <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-[#1a56db] text-xl font-medium flex items-center space-x-1">
                     <span>Top stories</span>
@@ -157,21 +172,20 @@ const Home = () => {
                     <Link to={`/newsdetail/${news[0]._id}`} className="md:w-1/2">
                       <div className="cursor-pointer">
                         <img
-                          src={news[0]?.images?.[0] || "https://via.placeholder.com/200x140"}
+                          src={
+                            news[0]?.images?.[0] ||
+                            "https://via.placeholder.com/200x140"
+                          }
                           alt={news[0]?.title}
-                          className="rounded-lg object-cover w-[350px] h-[180px] mb-2"
+                          className="rounded-sm object-cover w-[350px] h-[180px] mb-2"
                         />
-                        <div className="flex items-center space-x-1 mb-1">
-                          <span className="text-lg font-semibold text-[#5f6368]">
-                            {news[0]?.author?.username || "Unknown Author"}
-                          </span>
+                        <div className="text-sm text-[#5f6368] mb-1">
+                          {news[0]?.author?.firstname || "Unknown Author"} •{" "}
+                          {timeAgo(news[0].createdAt)}
                         </div>
                         <h2 className="text-lg font-medium text-[#202124] leading-tight max-w-[280px]">
                           {news[0]?.title.slice(0, 100)}...
                         </h2>
-                        <p className="text-sm text-[#5f6368] mt-2">
-                          {formatDate(news[0].createdAt)}
-                        </p>
                       </div>
                     </Link>
                   )}
@@ -181,16 +195,12 @@ const Home = () => {
                     {news.slice(1, 4).map((item, index) => (
                       <Link to={`/newsdetail/${item._id}`} key={index}>
                         <article className="cursor-pointer">
-                          <div className="flex items-center space-x-1 mb-1">
-                            <span className="text-sm font-semibold text-[#5f6368]">
-                              {item?.author?.username || "Unknown Author"}
-                            </span>
+                          <div className="text-sm text-[#5f6368] mb-1">
+                            {item?.author?.username || "Unknown Author"} •{" "}
+                            {timeAgo(item.createdAt)}
                           </div>
                           <p className="text-base text-[#202124] max-w-[320px] leading-snug">
                             {item?.title.slice(0, 100)}...
-                          </p>
-                          <p className="text-sm text-[#5f6368] mt-1">
-                            {formatDate(item.createdAt)}
                           </p>
                         </article>
                       </Link>
@@ -206,13 +216,13 @@ const Home = () => {
                 Top Picks
               </h2>
               {topPicks.slice(0, 5).map((item, idx) => (
-                <div key={idx} className="bg-white p-3 rounded-lg shadow-sm">
+                <div key={idx} className="bg-white p-3 rounded-md shadow-sm">
                   <Link to={`/newsdetail/${item._id}`}>
                     <h3 className="text-base font-semibold text-[#202124] leading-tight">
                       {item.title.slice(0, 60)}...
                     </h3>
                     <p className="text-sm text-[#5f6368] mt-1">
-                      {formatDate(item.createdAt)}
+                      {timeAgo(item.createdAt)}
                     </p>
                   </Link>
                 </div>

@@ -32,7 +32,7 @@ const addNews = async (req, res) => {
 
   // Function to calculate a region code based on 10km radius
   function getRegionCode(lat, lon) {
-    const RADIUS_KM = 10;
+    const RADIUS_KM = 5;
     const latStep = RADIUS_KM / 111; // ≈ 0.09 degrees
     const lonStep = RADIUS_KM / (111 * Math.cos(lat * Math.PI / 180)); // Adjust for curvature
     const latRegion = Math.floor(lat / latStep);
@@ -429,37 +429,30 @@ const updateNewsStatus = async (req, res) => {
 };
 
 const fetch = async (req, res) => {
-  const userid = req.query.userid;
+  const userId = req.query.userid;
 
   try {
-    // Validate userid
-    if (!userid || typeof userid !== "string") {
-      return res.status(400).json({ message: "Invalid or missing userid" });
+    if (!userId || typeof userId !== "string") {
+      return res.status(400).json({ message: "Invalid or missing userId" });
     }
 
-    // 1. Find the user by ID
-    const user = await User.findById(userid);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 2. Ensure the user has a code
-    const userCode = user.code;
-    console.log("Username:", user.username);
-    console.log("Region Code:", userCode);
-
-    if (userCode === undefined || userCode === null) {
-      return res.status(400).json({ message: "User does not have a valid region code" });
+    const regionCode = user?.code;
+    if (!regionCode) {
+      return res.status(400).json({ message: "User does not have a region code" });
     }
 
-    // 3. Fetch news with matching code
-    const news = await News.find({ code: userCode })
-      .populate('author', 'username');
+    const news = await News.find({ code: regionCode }).populate("author", "username");
+    console.log(news.status);
 
-    res.status(200).json({ success: true, news });
+    return res.status(200).json({ success: true, news });
   } catch (error) {
-    console.error("Error fetching news:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Error fetching news by region code:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
