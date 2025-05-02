@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@reduxjs/toolkit": "^2.5.0",
+    "@tailwindcss/line-clamp": "^0.4.4",
     "axios": "^1.8.4",
     "cra-template": "1.2.0",
     "firebase": "^11.5.0",

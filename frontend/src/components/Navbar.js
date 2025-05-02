@@ -27,7 +27,7 @@ const Navbar = () => {
       {/* Center: Logo and Navigation */}
       <div className="flex flex-col items-center">
         {/* Logo */}
-        <div className="flex items-center space-x-1 text-3xl font-serif font-bold">
+        <div className="flex items-center space-x-1 text-4xl font-serif font-bold">
           <span>PUBLIC NEWS DROID</span>
         </div>
 

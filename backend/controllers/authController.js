@@ -213,7 +213,13 @@ const userData = async (req, res) => {
   try {
     const user = await User.findById(userId); 
     if (user) {
-      res.json({ email: user.email });
+      res.json({ email: user.email,
+            mobile: user.mobile,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            dob: user.dob || { day: '', month: '', year: '' },
+            gender: user.gender,
+            city: user.city });
     } else {
       console.log("No user found");
       res.status(404).json({ error: "No user found" }); 
@@ -224,6 +230,37 @@ const userData = async (req, res) => {
   }
 };
 
+const updateUserProfile = async (req, res) => {
+  const { userId, mobile, firstName, lastName, dob, gender, city } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ success: false, message: "Missing userId" });
+  }
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        mobile,
+        firstName,
+        lastName,
+        dob,
+        gender,
+        city
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 module.exports = {
   sendPasswordResetEmail,
@@ -231,6 +268,6 @@ module.exports = {
   register,
   login,
   updateUserFcmToken,
-  userData
+  userData,
+  updateUserProfile
 };
-

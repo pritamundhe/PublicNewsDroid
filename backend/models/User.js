@@ -39,6 +39,27 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Article'
     }],
+    mobile: {
+        type: String
+    },
+    firstName: {
+        type: String
+    },
+    lastName: {
+        type: String
+    },
+    dob: {
+        day: { type: String },
+        month: { type: String },
+        year: { type: String }
+    },
+    gender: {
+        type: String,
+        enum: ['Male', 'Female', 'Other']
+    },
+    city: {
+        type: String
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -54,9 +75,10 @@ const UserSchema = new mongoose.Schema({
         type: Date
     },
     isActive: { 
-        type: Boolean, default: true 
+        type: Boolean, 
+        default: true 
     },
-    fcmToken:{
+    fcmToken: {
         type: String
     }, 
 });
