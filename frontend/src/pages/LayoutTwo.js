@@ -18,7 +18,10 @@ const LayoutTwo = ({ news, formatDate, startIndex }) => (
       const isBig = layoutType === 2;
       const cardHeight = isBig ? "h-72" : "h-48";
       const colSpan = isBig ? "col-span-1 sm:col-span-2" : "";
-      const imgUrl = `https://picsum.photos/600/400?random=${startIndex + index}`;
+      const imgUrl = Array.isArray(item.images) && item.images[0]
+        ? item.images[0]
+        : `https://picsum.photos/600/400?random=${startIndex + index}`;
+
 
       return (
         <Link
@@ -50,10 +53,11 @@ const LayoutTwo = ({ news, formatDate, startIndex }) => (
               </div>
 
               {/* Title */}
-              <h2 className="text-lg font-bold mt-2">{item.title}</h2>
+              <h2 className="text-lg font-bold mt-2 line-clamp-2">{item.title}</h2>
+
 
               {/* Content Preview */}
-              <p className="text-sm">{item.summary}...</p>
+              <p className="text-sm line-clamp-1">{item.summary}...</p>
 
               {/* Tags */}
               {item.tags?.length > 0 && (

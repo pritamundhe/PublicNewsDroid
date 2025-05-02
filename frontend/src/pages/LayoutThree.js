@@ -22,7 +22,9 @@ const LayoutThree = ({ news, formatDate, startIndex }) => (
         <div className="group bg-white rounded-3xl shadow-lg overflow-hidden transition-transform hover:scale-105 hover:shadow-2xl duration-300 cursor-pointer">
           <div className="relative">
             <img
-              src={`https://picsum.photos/500/300?random=${startIndex + index}`}
+              src={Array.isArray(item.images) && item.images[0]
+                ? item.images[0]
+                : `https://picsum.photos/600/400?random=${startIndex + index}`}
               className="w-full h-48 object-cover rounded-t-3xl"
               alt="News"
             />
@@ -31,10 +33,10 @@ const LayoutThree = ({ news, formatDate, startIndex }) => (
             </span>
           </div>
           <div className="p-6 space-y-4">
-            <h2 className="text-xl font-semibold text-gray-800 hover:text-red-600 group-hover:underline transition duration-200">
+            <h2 className="text-xl line-clamp-3 font-semibold text-gray-800 hover:text-red-600 group-hover:underline transition duration-200">
               {item.title}
             </h2>
-            <p className="text-sm text-gray-700">{item.summary}...</p>
+            <p className="text-sm text-gray-700 line-clamp-2">{item.summary}...</p>
             <p className="text-xs text-gray-400">
               By <span className="font-medium">{item.author?.username || "Anonymous"}</span> • {formatDate(item.createdAt)}
             </p>

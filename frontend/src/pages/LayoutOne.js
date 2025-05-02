@@ -23,7 +23,9 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
       >
         <div className="relative h-[450px] overflow-hidden shadow-lg rounded-xl cursor-pointer">
           <img
-            src={`https://picsum.photos/800/400?random=${startIndex}`}
+            src={Array.isArray(news[0].images) && news[0].images[0]
+                ? news[0].images[0]
+                : `https://picsum.photos/600/400?random=${startIndex}`}
             alt="Hero News"
             className="w-full h-full object-cover"
           />
@@ -42,7 +44,9 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
             <div className="flex flex-col md:flex-row md:space-x-6 mt-4">
               <div className="md:w-1/2">
                 <img
-                  src={`https://picsum.photos/seed/${startIndex}/200/140`}
+                src={Array.isArray(news[0].images) && news[0].images[0]
+                ? news[0].images[0]
+                : `https://picsum.photos/seed/${startIndex}/200/140`}
                   alt={news[0].title}
                   className="rounded-lg object-cover w-[200px] h-[140px] mb-2"
                 />
@@ -90,7 +94,9 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
         >
           <div className="group bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
             <img
-              src={`https://picsum.photos/400/300?random=${startIndex + index + 1}`}
+              src={Array.isArray(item.images) && item.images[0]
+                ? item.images[0]
+                : `https://picsum.photos/400/300?random=${startIndex + index + 1}`}
               className="w-full h-48 object-cover"
               alt="News"
             />
