@@ -7,8 +7,8 @@ export default function Login() {
     email: "",
     password: "",
   });
-const navigate=useNavigate();
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,74 +16,110 @@ const navigate=useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const response = await axios.post("http://localhost:5000/users/login", formData);
       setMessage("Login successful");
-      console.log(response.data);
-      localStorage.setItem("token",response.data.token); 
-      localStorage.setItem("userId",response.data.user.id);
-      if(response.data.user.role == "user"){
-           navigate("/");
-        }
-        else{
-          navigate("/admin");
-      } 
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("userId", response.data.user.id);
+      if (response.data.user.role === "user") {
+        navigate("/");
+      } else {
+        navigate("/admin");
+      }
     } catch (error) {
       setMessage(error.response?.data?.message || "Login failed");
     }
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center  px-4 font-serif">
-      <div className="bg-white shadow-2xl rounded-xl p-10 w-full max-w-lg border border-red-300">
-        <h2 className="text-3xl font-bold mb-2 text-center text-black uppercase tracking-wide">
-         Public<span className="text-black">News</span> Login
-        </h2>
-        <h1 className="w-50% bg-red-500 h-[3px] rounded-xl mb-6"></h1>
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-5">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Email</label>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:outline-none"
-              placeholder="Enter your email"
-            />
+    <div className="bg-[#9c8cc7] min-h-screen flex items-center justify-center p-6 font-[Poppins,sans-serif]">
+      <div className="max-w-5xl w-full rounded-[24px] flex flex-col md:flex-row overflow-hidden shadow-lg">
+        {/* Left Panel */}
+        <div className="relative bg-gradient-to-b from-[#7f5fc5] to-[#8f6cc9] flex-1 p-10 md:p-16 text-white rounded-t-[24px] md:rounded-l-[24px] md:rounded-tr-none">
+          <img
+            src="https://storage.googleapis.com/a1aa/image/b70525a2-546d-425f-9f9d-0be704a5f7df.jpg"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-40 rounded-t-[24px] md:rounded-l-[24px] md:rounded-tr-none"
+          />
+          <div className="relative z-10 max-w-md">
+            <h1 className="text-4xl font-extrabold mb-3">Welcome back!</h1>
+            <p className="text-lg font-normal leading-relaxed">
+              You can sign in to access with your existing account.
+            </p>
           </div>
+        </div>
 
-          <div className="mb-6">
-            <label className="block mb-2 text-sm font-semibold text-gray-700">Password</label>
-            <input
-              type="password"
-              name="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:outline-none"
-              placeholder="Enter your password"
-            />
-          </div>
+        {/* Right Panel */}
+        <div className="bg-white flex-1 rounded-b-[24px] md:rounded-r-[24px] md:rounded-bl-none p-10 md:p-16 flex flex-col justify-center">
+          <h2 className="text-3xl font-extrabold text-gray-700 mb-8">Sign In</h2>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <div className="relative text-gray-400 focus-within:text-purple-700">
+                <span className="absolute inset-y-0 left-4 flex items-center">
+                  <i className="fas fa-user" />
+                </span>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Username or email"
+                  required
+                  className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div>
+              <div className="relative text-gray-400 focus-within:text-purple-700">
+                <span className="absolute inset-y-0 left-4 flex items-center">
+                  <i className="fas fa-lock" />
+                </span>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                  required
+                  className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 text-gray-500 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-red-600 hover:bg-red-700 text-white text-lg font-semibold py-2 px-4 rounded-lg transition-all"
-          >
-            Login
-          </button>
-        </form>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <label className="inline-flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked
+                  readOnly
+                  className="form-checkbox h-4 w-4 text-purple-600 border-gray-300 rounded"
+                />
+                <span>Remember me</span>
+              </label>
+              <a className="text-purple-600 hover:text-purple-800 transition-colors duration-200" href="#">
+                Forgot password?
+              </a>
+            </div>
 
-        {message && (
-          <p className="mt-4 text-center text-sm text-red-600 font-medium">{message}</p>
-        )}
+            <button
+              type="submit"
+              className="w-full py-3 rounded-full text-white text-lg font-medium bg-gradient-to-r from-[#6a4bcf] to-[#7f5fc5] hover:from-[#7f5fc5] hover:to-[#6a4bcf] transition-colors duration-300"
+            >
+              Sign In
+            </button>
+          </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don’t have an account? <a href="/signup" className="text-red-600 font-medium hover:underline">Register here</a>
-        </p>
+          {message && (
+            <p className="mt-4 text-center text-sm text-red-600 font-medium">{message}</p>
+          )}
+
+          <p className="mt-6 text-center text-gray-600 text-sm">
+            New here?{" "}
+            <a className="text-purple-600 hover:text-purple-800 font-medium transition-colors duration-200" href="/signup">
+              Create an Account
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
