@@ -2,19 +2,20 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
 
+// Increment view count when a news card is clicked
 const incrementView = async (newsId) => {
-    try {
-      await fetch(`http://localhost:5000/news/increment-view/${newsId}`, {
-        method: 'PUT',
-      });
-    } catch (error) {
-      console.error("Failed to increment view:", error);
-    }
-  };
+  try {
+    await fetch(`http://localhost:5000/news/increment-view/${newsId}`, {
+      method: 'PUT',
+    });
+  } catch (error) {
+    console.error("Failed to increment view:", error);
+  }
+};
 
 const LayoutOne = ({ news, formatDate, startIndex }) => (
   <div className="space-y-12">
-    {/* Hero Section */}
+    {/* ------------------ Hero Section ------------------ */}
     {news[0] && (
       <Link
         to={`/newsdetail/${news[0]._id}`}
@@ -36,74 +37,50 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
                 <span className="bg-white/20 px-2 py-0.5 text-xs rounded">{news[0].source}</span>
               )}
             </div>
-            <div className="flex flex-col md:flex-row md:space-x-6">
+
+            {/* Hero Title and Side Stories */}
+            <div className="flex flex-col md:flex-row md:space-x-6 mt-4">
               <div className="md:w-1/2">
-                <img src={`https://picsum.photos/seed/${startIndex}/200/140`} alt={news[0].title} className="rounded-lg object-cover w-[200px] h-[140px] mb-2" />
+                <img
+                  src={`https://picsum.photos/seed/${startIndex}/200/140`}
+                  alt={news[0].title}
+                  className="rounded-lg object-cover w-[200px] h-[140px] mb-2"
+                />
                 <div className="flex items-center space-x-1 mb-1">
                   <span className="text-xs font-semibold text-[#5f6368]">{news[0].source}</span>
                 </div>
-                <h2 className="text-lg font-normal text-[#202124] leading-tight max-w-[280px]">
+                <h2 className="text-lg font-normal text-[#f1f3f4] leading-tight max-w-[280px]">
                   {news[0].title.length > 90 ? news[0].title.substring(0, 87) + '...' : news[0].title}
                 </h2>
-                <p className="text-xs text-[#5f6368] mt-2">{formatDate(news[0].createdAt)}</p>
+                <p className="text-xs text-[#ccc] mt-2">{formatDate(news[0].createdAt)}</p>
               </div>
+
               <div className="md:w-1/2 mt-6 md:mt-0 flex flex-col space-y-4">
                 {news.slice(1, 4).map((item, i) => (
                   <article key={i}>
                     <div className="flex items-center space-x-1 mb-1">
-                      <span className="text-xs font-semibold text-[#5f6368]">{item.source}</span>
+                      <span className="text-xs font-semibold text-white">{item.source}</span>
                     </div>
-                    <p className="text-sm text-[#202124] max-w-[320px] leading-snug">
+                    <p className="text-sm text-white max-w-[320px] leading-snug">
                       {item.title.length > 100 ? item.title.substring(0, 97) + '...' : item.title}
                     </p>
-                    <p className="text-xs text-[#5f6368] mt-1">{formatDate(item.createdAt)}</p>
+                    <p className="text-xs text-white mt-1">{formatDate(item.createdAt)}</p>
                   </article>
                 ))}
               </div>
             </div>
-            <div className="flex justify-end mt-4 pt-4 border-t border-[#dadce0]">
-              <button className="flex items-center space-x-2 text-xs text-[#3c4043] bg-[#f1f3f4] rounded-full px-3 py-1" type="button">
+
+            <div className="flex justify-end mt-4 pt-4 border-t border-white/20">
+              <button className="flex items-center space-x-2 text-xs text-white bg-[#f1f3f4]/20 rounded-full px-3 py-1" type="button">
                 <span>Full coverage</span>
               </button>
             </div>
-          </section>
-        )}
-
-        {/* Additional News Cards Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {news.slice(4).map((item, index) => (
-            <Link to={`/newsdetail/${item._id}`} key={index}>
-              <div className="group bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
-                <img
-                  src={`https://picsum.photos/seed/${startIndex + index}/400/240`}
-                  alt={item.title}
-                  className="w-full h-[180px] object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-[#202124] mb-1 group-hover:text-blue-600">
-                    {item.title.length > 80 ? item.title.substring(0, 77) + '...' : item.title}
-                  </h3>
-                  <p className="text-sm text-[#5f6368] mb-2">{formatDate(item.createdAt)}</p>
-                  <div className="flex items-center text-xs text-gray-500 space-x-4">
-                    <div className="flex items-center space-x-1">
-                      <ThumbsUp size={14} /> <span>{item.likes || 0}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <ThumbsDown size={14} /> <span>{item.dislikes || 0}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <MessageSquare size={14} /> <span>{item.comments?.length || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+          </div>
         </div>
       </Link>
     )}
 
-    {/* News Cards Section */}
+    {/* ------------------ News Cards Section ------------------ */}
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {news.slice(1).map((item, index) => (
         <Link
@@ -131,7 +108,7 @@ const LayoutOne = ({ news, formatDate, startIndex }) => (
               <h2 className="text-lg font-semibold text-gray-800 group-hover:text-red-600 transition duration-200">
                 {item.title}
               </h2>
-              <p className="text-sm text-gray-600">{item.summary.slice(0, 100)}...</p>
+              <p className="text-sm text-gray-600">{item.summary?.slice(0, 100)}...</p>
 
               {item.keywords?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
