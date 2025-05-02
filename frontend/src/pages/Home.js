@@ -163,7 +163,7 @@ const Home = () => {
                         />
                         <div className="flex items-center space-x-1 mb-1">
                           <span className="text-lg font-semibold text-[#5f6368]">
-                            {news[0]?.author?.username || "Unknown Author"}
+                            {news[0]?.author?.firstname|| "Unknown Author"}
                           </span>
                         </div>
                         <h2 className="text-lg font-medium text-[#202124] leading-tight max-w-[280px]">

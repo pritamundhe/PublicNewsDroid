@@ -121,7 +121,7 @@ const register = async (req, res) => {
         }
       }
       function getRegionCode(lat, lon) {
-        const RADIUS_KM = 10;
+        const RADIUS_KM = 5;
         const latStep = RADIUS_KM / 111; // ≈ 0.09 degrees
         const lonStep = RADIUS_KM / (111 * Math.cos(lat * Math.PI / 180)); // Adjust for curvature
         const latRegion = Math.floor(lat / latStep);
