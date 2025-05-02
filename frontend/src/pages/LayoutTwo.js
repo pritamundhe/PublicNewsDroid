@@ -1,6 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+const incrementView = async (newsId) => {
+  try {
+    await fetch(`http://localhost:5000/news/increment-view/${newsId}`, {
+      method: 'PUT',
+    });
+  } catch (error) {
+    console.error("Failed to increment view:", error);
+  }
+};
+
 const LayoutTwo = ({ news, formatDate, startIndex }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[minmax(200px,_auto)]">
     {news.map((item, index) => {
@@ -11,7 +21,11 @@ const LayoutTwo = ({ news, formatDate, startIndex }) => (
       const imgUrl = `https://picsum.photos/600/400?random=${startIndex + index}`;
 
       return (
-        <Link to={`/newsdetail/${item._id}`} key={index}>
+        <Link
+          to={`/newsdetail/${item._id}`}
+          onClick={() => incrementView(item._id)}
+          key={index}
+        >
           <div
             className={`relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition duration-300 transform hover:scale-[1.02] cursor-pointer ${colSpan}`}
           >

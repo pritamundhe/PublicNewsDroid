@@ -1,10 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+const incrementView = async (newsId) => {
+  try {
+    await fetch(`http://localhost:5000/news/increment-view/${newsId}`, {
+      method: 'PUT',
+    });
+  } catch (error) {
+    console.error("Failed to increment view:", error);
+  }
+};
+
 const LayoutThree = ({ news, formatDate, startIndex }) => (
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
     {news.map((item, index) => (
-      <Link to={`/newsdetail/${item._id}`} key={index}>
+      <Link
+        to={`/newsdetail/${item._id}`}
+        onClick={() => incrementView(item._id)}
+        key={index}
+      >
         <div className="group bg-white rounded-3xl shadow-lg overflow-hidden transition-transform hover:scale-105 hover:shadow-2xl duration-300 cursor-pointer">
           <div className="relative">
             <img
