@@ -5,9 +5,12 @@ import { Link } from "react-router-dom";
 import LayoutOne from "./LayoutOne";
 import LayoutTwo from "./LayoutTwo";
 import LayoutThree from "./LayoutThree";
+import axios from 'axios'
 
 const Home = () => {
-  const [news, setNews] = useState([]); // Initialize news as an empty array
+  const [news, setNews] = useState([]);
+  const [topPicks, setTopPicks] = useState([]);
+  const [latestNews, setLatestNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [layoutIndex] = useState(Math.floor(Math.random() * 3)); // Random layout each refresh
@@ -50,7 +53,31 @@ const Home = () => {
           setLoading(false);
         });
     }
-  }, [userId]);  // Depend on userId to ensure it's loaded from localStorage
+  }, [userId]);
+
+  const incrementView = async (newsId) => {
+    try {
+      await fetch(`http://localhost:5000/news/increment-view/${newsId}`, {
+        method: 'PUT',
+      });
+    } catch (error) {
+      console.error("Failed to increment view:", error);
+    }
+  };
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/news/gethighlights")
+      .then((res) => {
+        if (res.data.success) {
+          setTopPicks(res.data.topPicks);
+          setLatestNews(res.data.latestNews);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching highlights:", error);
+      });
+  }, []);
+
 
   useEffect(() => {
     setCurrentPage(1);
@@ -65,7 +92,6 @@ const Home = () => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString("en-US", options);
   };
-  console.log(news);
 
   const filteredNews = selectedCategory === "All"
     ? news
@@ -76,8 +102,6 @@ const Home = () => {
         .includes(selectedCategory.toLowerCase())
     );
 
-
-  console.log(filteredNews);
   const totalPages = Math.ceil(filteredNews.length / newsPerPage);
   const startIndex = (currentPage - 1) * newsPerPage;
   const currentNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
@@ -136,9 +160,13 @@ const Home = () => {
           {/* Left Sidebar - Top Picks */}
           <aside className="lg:col-span-1 hidden lg:block space-y-4">
             <h2 className="text-xl font-bold border-b pb-2">Top Picks</h2>
-            {news.slice(0, 5).map((item, index) => (
+            {topPicks.slice(0, 5).map((item, index) => (
               <div key={index} className="bg-white p-2 rounded shadow">
-                <Link to={`/newsdetail/${item._id}`} key={index}>
+                <Link
+                  to={`/newsdetail/${item._id}`}
+                  onClick={() => incrementView(item._id)}
+                  key={index}
+                >
                   <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
                   <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
                 </Link>
@@ -148,15 +176,21 @@ const Home = () => {
 
           {/* Main Content */}
           <section className="lg:col-span-3">
-            {loading ? <p>Loading news...</p> : renderLayout()}
+            {loading ? <p >Loading news...
+              <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mt-4">
+              </div></p> : renderLayout()}
           </section>
 
           {/* Right Sidebar - Latest News */}
           <aside className="lg:col-span-1 hidden lg:block space-y-4">
             <h2 className="text-xl font-bold border-b pb-2">Latest News</h2>
-            {news.slice(-5).reverse().map((item, index) => (
+            {latestNews.slice(-5).reverse().map((item, index) => (
               <div key={index} className="bg-white p-2 rounded shadow">
-                <Link to={`/newsdetail/${item._id}`} key={index}>
+                <Link
+                  to={`/newsdetail/${item._id}`}
+                  onClick={() => incrementView(item._id)}
+                  key={index}
+                >
                   <h3 className="text-sm font-semibold">{item.title.slice(0, 50)}...</h3>
                   <p className="text-xs text-gray-500">{formatDate(item.createdAt)}</p>
                 </Link>
