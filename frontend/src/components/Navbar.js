@@ -27,7 +27,7 @@ const Navbar = () => {
       {/* Center: Logo and Navigation */}
       <div className="flex flex-col items-center">
         {/* Logo */}
-        <div className="flex items-center space-x-1 text-4xl font-serif font-bold">
+        <div className="flex items-center space-x-1 text-3xl font-serif font-bold">
           <span>PUBLIC NEWS DROID</span>
         </div>
 
@@ -54,11 +54,6 @@ const Navbar = () => {
         </button>
 
         <div >
-          <Link to="/subscription">
-            <button className="bg-red-700 hover:bg-red-500 text-white px-4 py-1 rounded">
-              SUBSCRIBE
-            </button>
-          </Link>
 
           {loggedIn == true ? (
             <div className="mt-2 text-center font-semibold font-times">
