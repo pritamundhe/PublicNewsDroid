@@ -78,14 +78,13 @@ const Home = () => {
     selectedCategory === "All"
       ? news.filter((item) => item.status != "Rejected")
       : news.filter(
-          (item) =>
-            item.status !== "Rejected" &&
-            item.category
-              ?.split(",")
-              .map((cat) => cat.trim().toLowerCase())
-              .includes(selectedCategory.toLowerCase())
-        );
-
+        (item) =>
+          item.status !== "Rejected" &&
+          item.category
+            ?.split("/")
+            .map((cat) => cat.trim().toLowerCase())
+            .includes(selectedCategory.toLowerCase())
+      );
   const totalPages = Math.ceil(filteredNews.length / newsPerPage);
   const startIndex = (currentPage - 1) * newsPerPage;
   const currentNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
@@ -113,9 +112,8 @@ const Home = () => {
               <button
                 key={item}
                 onClick={() => setSelectedCategory(item)}
-                className={`hover:text-red-700 ${
-                  selectedCategory === item ? "text-red-700 underline" : ""
-                } flex items-center`}
+                className={`hover:text-red-700 ${selectedCategory === item ? "text-red-700 underline" : ""
+                  } flex items-center`}
               >
                 {item === "Premium" ? (
                   <>
@@ -209,34 +207,34 @@ const Home = () => {
                 </div>
               </section>
               {/* Highlighted News (from topPicks) - displayed anonymously */}
-{topPicks.length > 0 && (
-  <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {topPicks.map((item) => (
-        <Link to={`/news/${item._id}`} key={item._id}>
-          <div className="bg-[#f8fafc] hover:bg-white shadow hover:shadow-lg transition p-4 rounded-lg border border-gray-200">
-            {item.images?.[0] && (
-              <img
-                src={item.images[0]}
-                alt={item.title}
-                className="w-full h-48 object-cover rounded mb-3"
-              />
-            )}
-            <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
-              {item.title}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1 line-clamp-3">
-              {item.summary}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              {timeAgo(item.createdAt)}
-            </p>
-          </div>
-        </Link>
-      ))}
-    </div>
-  </section>
-)}
+              {filteredNews.length > 0 && (
+                <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {filteredNews.map((item) => (
+                      <Link to={`/news/${item._id}`} key={item._id}>
+                        <div className="bg-[#f8fafc] hover:bg-white shadow hover:shadow-lg transition p-4 rounded-lg border border-gray-200">
+                          {item.images?.[0] && (
+                            <img
+                              src={item.images[0]}
+                              alt={item.title}
+                              className="w-full h-48 object-cover rounded mb-3"
+                            />
+                          )}
+                          <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                            {item.summary}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {timeAgo(item.createdAt)}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
             </main>
 
