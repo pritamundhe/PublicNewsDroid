@@ -150,7 +150,7 @@ const Home = () => {
               </header>
 
               {/* Top Stories */}
-              <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
+              <section className="bg-white rounded-md p-4 mb-6 border border-gray-400">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-[#1a56db] text-xl font-medium flex items-center space-x-1">
                     <span>Top stories</span>
@@ -208,6 +208,36 @@ const Home = () => {
                   </div>
                 </div>
               </section>
+              {/* Highlighted News (from topPicks) - displayed anonymously */}
+{topPicks.length > 0 && (
+  <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {topPicks.map((item) => (
+        <Link to={`/news/${item._id}`} key={item._id}>
+          <div className="bg-[#f8fafc] hover:bg-white shadow hover:shadow-lg transition p-4 rounded-lg border border-gray-200">
+            {item.images?.[0] && (
+              <img
+                src={item.images[0]}
+                alt={item.title}
+                className="w-full h-48 object-cover rounded mb-3"
+              />
+            )}
+            <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+              {item.title}
+            </h3>
+            <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+              {item.summary}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              {timeAgo(item.createdAt)}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  </section>
+)}
+
             </main>
 
             {/* Right Sidebar */}
