@@ -29,6 +29,8 @@ const analyzeContent = async (content) => {
       return true;
     }
 
+    console.log(toxicLabel.data);
+
     return false;
   } catch (error) {
     console.error('Error analyzing content:', error.response ? error.response.data : error.message);

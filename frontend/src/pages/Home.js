@@ -37,6 +37,7 @@ const Home = () => {
         if (Array.isArray(data)) {
           const approvedNews = data.filter((item) => item.status !== "Rejected");
           setNews(approvedNews);
+          console.log(approvedNews)
         } else {
           console.error("API response is not an array:", data);
         }
@@ -89,13 +90,13 @@ const Home = () => {
     selectedCategory === "All"
       ? news
       : news.filter(
-          (item) =>
-            item.category
-              ?.split(",")
-              .map((cat) => cat.trim().toLowerCase())
-              .includes(selectedCategory.toLowerCase())
-        );
-
+        (item) =>
+          item.status !== "Rejected" &&
+          item.category
+            ?.split("/")
+            .map((cat) => cat.trim().toLowerCase())
+            .includes(selectedCategory.toLowerCase())
+      );
   const totalPages = Math.ceil(filteredNews.length / newsPerPage);
   const startIndex = (currentPage - 1) * newsPerPage;
   const currentNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
@@ -159,7 +160,7 @@ const Home = () => {
                         className="rounded-sm object-cover w-[350px] h-[180px] mb-2"
                       />
                       <div className="text-sm text-[#5f6368] mb-1">
-                        {news[0]?.author?.firstname || "Unknown Author"} • {timeAgo(news[0].createdAt)}
+                        {news[0]?.author?.username || "Unknown Author"} • {timeAgo(news[0].createdAt)}
                       </div>
                       <h2 className="text-lg font-medium text-[#202124] leading-tight max-w-[280px]">
                         {news[0]?.title.slice(0, 100)}...
@@ -181,6 +182,35 @@ const Home = () => {
                   </div>
                 </div>
               </section>
+              {/* Highlighted News (from topPicks) - displayed anonymously */}
+              {filteredNews.length > 0 && (
+                <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {filteredNews.map((item) => (
+                      <Link to={`/news/${item._id}`} key={item._id}>
+                        <div className="bg-[#f8fafc] hover:bg-white shadow hover:shadow-lg transition p-4 rounded-lg border border-gray-200">
+                          {item.images?.[0] && (
+                            <img
+                              src={item.images[0]}
+                              alt={item.title}
+                              className="w-full h-48 object-cover rounded mb-3"
+                            />
+                          )}
+                          <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+                            {item.summary}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-2">
+                            {timeAgo(item.createdAt)}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {topPicks.length > 0 && (
                 <section className="bg-white rounded-md p-4 mb-6 border border-transparent">

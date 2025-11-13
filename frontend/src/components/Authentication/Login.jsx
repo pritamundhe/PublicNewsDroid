@@ -32,10 +32,10 @@ export default function Login() {
   };
 
   return (
-    <div className="bg-[#9c8cc7] min-h-screen flex items-center justify-center p-6 font-[Poppins,sans-serif]">
+    <div className="bg-white min-h-screen flex items-center justify-center p-6 font-[Poppins,sans-serif]">
       <div className="max-w-5xl w-full rounded-[24px] flex flex-col md:flex-row overflow-hidden shadow-lg">
         {/* Left Panel */}
-        <div className="relative bg-gradient-to-b from-[#7f5fc5] to-[#8f6cc9] flex-1 p-10 md:p-16 text-white rounded-t-[24px] md:rounded-l-[24px] md:rounded-tr-none">
+        <div className="relative bg-gradient-to-b from-[#c95252] to-[#943939] flex-1 p-10 md:p-16 text-white rounded-t-[24px] md:rounded-l-[24px] md:rounded-tr-none">
           <img
             src="https://storage.googleapis.com/a1aa/image/b70525a2-546d-425f-9f9d-0be704a5f7df.jpg"
             alt=""
@@ -54,7 +54,7 @@ export default function Login() {
           <h2 className="text-3xl font-extrabold text-gray-700 mb-8">Sign In</h2>
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <div className="relative text-gray-400 focus-within:text-purple-700">
+              <div className="relative text-gray-400 focus-within:text-red-700">
                 <span className="absolute inset-y-0 left-4 flex items-center">
                   <i className="fas fa-user" />
                 </span>
@@ -70,7 +70,7 @@ export default function Login() {
               </div>
             </div>
             <div>
-              <div className="relative text-gray-400 focus-within:text-purple-700">
+              <div className="relative text-gray-400 focus-within:text-red-700">
                 <span className="absolute inset-y-0 left-4 flex items-center">
                   <i className="fas fa-lock" />
                 </span>
@@ -92,18 +92,18 @@ export default function Login() {
                   type="checkbox"
                   checked
                   readOnly
-                  className="form-checkbox h-4 w-4 text-purple-600 border-gray-300 rounded"
+                  className="form-checkbox h-4 w-4 text-red-600 border-gray-300 rounded"
                 />
                 <span>Remember me</span>
               </label>
-              <a className="text-purple-600 hover:text-purple-800 transition-colors duration-200" href="#">
+              <a className="text-red-600 hover:text-red-800 transition-colors duration-200" href="#">
                 Forgot password?
               </a>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-full text-white text-lg font-medium bg-gradient-to-r from-[#6a4bcf] to-[#7f5fc5] hover:from-[#7f5fc5] hover:to-[#6a4bcf] transition-colors duration-300"
+              className="w-full py-3 rounded-full text-white text-lg font-medium bg-red-500 hover:red-300 transition-colors duration-300"
             >
               Sign In
             </button>
@@ -115,7 +115,7 @@ export default function Login() {
 
           <p className="mt-6 text-center text-gray-600 text-sm">
             New here?{" "}
-            <a className="text-purple-600 hover:text-purple-800 font-medium transition-colors duration-200" href="/signup">
+            <a className="text-pred-600 hover:text-red-800 font-medium transition-colors duration-200" href="/signup">
               Create an Account
             </a>
           </p>
