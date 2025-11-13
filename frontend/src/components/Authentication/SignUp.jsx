@@ -56,10 +56,10 @@ export default function Signup() {
   };
 
   return (
-    <div className="bg-[#9c8cc7] min-h-screen flex items-center justify-center p-6 font-[Poppins]">
+    <div className="bg-white min-h-screen flex items-center justify-center p-6 font-[Poppins]">
       <div className="max-w-6xl w-full rounded-[24px] flex flex-col md:flex-row overflow-hidden shadow-xl">
         {/* Left Panel */}
-        <div className="relative bg-gradient-to-b from-[#7f5fc5] to-[#8f6cc9] flex-1 p-10 md:p-16 text-white">
+        <div className="relative bg-red-300 flex-1 p-10 md:p-16 text-white">
           <img
             src="https://storage.googleapis.com/a1aa/image/b70525a2-546d-425f-9f9d-0be704a5f7df.jpg"
             alt="Decoration"
@@ -140,7 +140,7 @@ export default function Signup() {
 
             <button
               type="submit"
-              className="w-full py-3 rounded-full text-white text-lg font-semibold bg-gradient-to-r from-[#6a4bcf] to-[#7f5fc5] hover:from-[#7f5fc5] hover:to-[#6a4bcf] transition-colors duration-300"
+              className="w-full py-3 rounded-full text-white text-lg font-semibold bg-red-500 hover:bg-red-300 transition-colors duration-300"
             >
               Sign Up
             </button>
@@ -148,7 +148,7 @@ export default function Signup() {
 
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{" "}
-            <a href="/login" className="text-purple-600 font-semibold hover:underline">
+            <a href="/login" className="text-red-600 font-semibold hover:underline">
               Sign In
             </a>
           </p>

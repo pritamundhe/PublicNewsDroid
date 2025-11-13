@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Home = () => {
@@ -14,6 +14,17 @@ const Home = () => {
 
   const newsPerPage = 10;
   const userId = localStorage.getItem("userId");
+  const navigate = useNavigate();
+
+  // View counter handler
+  const handleNewsClick = async (newsId) => {
+    try {
+      await axios.put(`http://localhost:5000/news/increment-view/${newsId}`);
+    } catch (error) {
+      console.error('Error incrementing view count:', error);
+    }
+    navigate(`/newsdetail/${newsId}`);
+  };
 
   useEffect(() => {
     const url = userId
@@ -24,8 +35,9 @@ const Home = () => {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          const approvedNews = data.filter((item) => item.status != "Rejected");
+          const approvedNews = data.filter((item) => item.status !== "Rejected");
           setNews(approvedNews);
+          console.log(approvedNews)
         } else {
           console.error("API response is not an array:", data);
         }
@@ -42,7 +54,7 @@ const Home = () => {
       .get("http://localhost:5000/news/gethighlights")
       .then((res) => {
         if (res.data.success) {
-          const filterValid = (arr) => arr.filter((item) => item.status != "Rejected");
+          const filterValid = (arr) => arr.filter((item) => item.status !== "Rejected");
           setTopPicks(filterValid(res.data.topPicks));
           setLatestNews(filterValid(res.data.latestNews));
         }
@@ -76,7 +88,7 @@ const Home = () => {
 
   const filteredNews =
     selectedCategory === "All"
-      ? news.filter((item) => item.status != "Rejected")
+      ? news
       : news.filter(
         (item) =>
           item.status !== "Rejected" &&
@@ -92,39 +104,24 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       <Navbar />
-
       <div className="bg-gray-100">
         <div className="bg-gray-50 py-3 border-b shadow-sm font-times">
           <nav className="mt-2 flex flex-wrap justify-center gap-4 text-lg">
             {[
-              "Local",
-              "India",
-              "World",
-              "Movies",
-              "Sport",
-              "Data",
-              "Health",
-              "Opinion",
-              "Science",
-              "Business",
-              "Premium",
+              "Local", "India", "World", "Movies", "Sport",
+              "Data", "Health", "Opinion", "Science", "Business", "Premium",
             ].map((item) => (
               <button
                 key={item}
                 onClick={() => setSelectedCategory(item)}
-                className={`hover:text-red-700 ${selectedCategory === item ? "text-red-700 underline" : ""
-                  } flex items-center`}
+                className={`hover:text-red-700 ${selectedCategory === item ? "text-red-700 underline" : ""} flex items-center`}
               >
                 {item === "Premium" ? (
                   <>
-                    <span className="bg-yellow-400 px-2 text-black font-bold text-xs mr-1">
-                      TH
-                    </span>
+                    <span className="bg-yellow-400 px-2 text-black font-bold text-xs mr-1">TH</span>
                     Premium
                   </>
-                ) : (
-                  item
-                )}
+                ) : item}
               </button>
             ))}
           </nav>
@@ -132,12 +129,9 @@ const Home = () => {
 
         <div className="bg-[#f2f7fc] min-h-screen p-4 font-[Roboto]">
           <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:space-x-6">
-            {/* Left Side */}
             <main className="flex-1">
               <header className="mb-6">
-                <h1 className="text-3xl font-medium text-[#202124]">
-                  Your briefing
-                </h1>
+                <h1 className="text-3xl font-medium text-[#202124]">Your briefing</h1>
                 <p className="text-base text-[#5f6368] mt-1">
                   {new Date().toLocaleDateString("en-US", {
                     weekday: "long",
@@ -147,61 +141,43 @@ const Home = () => {
                 </p>
               </header>
 
-              {/* Top Stories */}
               <section className="bg-white rounded-md p-4 mb-6 border border-gray-400">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-[#1a56db] text-xl font-medium flex items-center space-x-1">
                     <span>Top stories</span>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="#1a56db"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-4 h-4" fill="none" stroke="#1a56db" strokeWidth="2" viewBox="0 0 24 24">
                       <path d="M9 18l6-6-6-6" />
                     </svg>
                   </h2>
                 </div>
 
                 <div className="flex flex-col md:flex-row md:space-x-6">
-                  {/* Main Story */}
                   {news[0] && (
-                    <Link to={`/newsdetail/${news[0]._id}`} className="md:w-1/2">
-                      <div className="cursor-pointer">
-                        <img
-                          src={
-                            news[0]?.images?.[0] ||
-                            "https://via.placeholder.com/200x140"
-                          }
-                          alt={news[0]?.title}
-                          className="rounded-sm object-cover w-[350px] h-[180px] mb-2"
-                        />
-                        <div className="text-sm text-[#5f6368] mb-1">
-                          {news[0]?.author?.firstname || "Unknown Author"} •{" "}
-                          {timeAgo(news[0].createdAt)}
-                        </div>
-                        <h2 className="text-lg font-medium text-[#202124] leading-tight max-w-[280px]">
-                          {news[0]?.title.slice(0, 100)}...
-                        </h2>
+                    <div className="md:w-1/2 cursor-pointer" onClick={() => handleNewsClick(news[0]._id)}>
+                      <img
+                        src={news[0]?.images?.[0] || "https://via.placeholder.com/200x140"}
+                        alt={news[0]?.title}
+                        className="rounded-sm object-cover w-[350px] h-[180px] mb-2"
+                      />
+                      <div className="text-sm text-[#5f6368] mb-1">
+                        {news[0]?.author?.username || "Unknown Author"} • {timeAgo(news[0].createdAt)}
                       </div>
-                    </Link>
+                      <h2 className="text-lg font-medium text-[#202124] leading-tight max-w-[280px]">
+                        {news[0]?.title.slice(0, 100)}...
+                      </h2>
+                    </div>
                   )}
 
-                  {/* Secondary Stories */}
                   <div className="md:w-1/2 mt-6 md:mt-0 flex flex-col space-y-4">
                     {news.slice(1, 4).map((item, index) => (
-                      <Link to={`/newsdetail/${item._id}`} key={index}>
-                        <article className="cursor-pointer">
-                          <div className="text-sm text-[#5f6368] mb-1">
-                            {item?.author?.username || "Unknown Author"} •{" "}
-                            {timeAgo(item.createdAt)}
-                          </div>
-                          <p className="text-base text-[#202124] max-w-[320px] leading-snug">
-                            {item?.title.slice(0, 100)}...
-                          </p>
-                        </article>
-                      </Link>
+                      <div key={index} onClick={() => handleNewsClick(item._id, `/newsdetail/${item._id}`)} className="cursor-pointer">
+                        <div className="text-sm text-[#5f6368] mb-1">
+                          {item?.author?.username || "Unknown Author"} • {timeAgo(item.createdAt)}
+                        </div>
+                        <p className="text-base text-[#202124] max-w-[320px] leading-snug">
+                          {item?.title.slice(0, 100)}...
+                        </p>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -236,30 +212,48 @@ const Home = () => {
                 </section>
               )}
 
+              {topPicks.length > 0 && (
+                <section className="bg-white rounded-md p-4 mb-6 border border-transparent">
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {topPicks.map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => handleNewsClick(item._id, `/news/${item._id}`)}
+                        className="bg-[#f8fafc] hover:bg-white shadow hover:shadow-lg transition p-4 rounded-lg border border-gray-200 cursor-pointer"
+                      >
+                        {item.images?.[0] && (
+                          <img
+                            src={item.images[0]}
+                            alt={item.title}
+                            className="w-full h-48 object-cover rounded mb-3"
+                          />
+                        )}
+                        <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">{item.title}</h3>
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-3">{item.summary}</p>
+                        <p className="text-xs text-gray-500 mt-2">{timeAgo(item.createdAt)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </main>
 
-            {/* Right Sidebar */}
             <aside className="lg:w-[300px] hidden lg:block space-y-4">
-              <h2 className="text-xl font-semibold text-[#202124] border-b pb-2">
-                Top Picks
-              </h2>
+              <h2 className="text-xl font-semibold text-[#202124] border-b pb-2">Top Picks</h2>
               {topPicks.slice(0, 5).map((item, idx) => (
                 <div key={idx} className="bg-white p-3 rounded-md shadow-sm">
-                  <Link to={`/newsdetail/${item._id}`}>
+                  <div onClick={() => handleNewsClick(item._id, `/newsdetail/${item._id}`)} className="cursor-pointer">
                     <h3 className="text-base font-semibold text-[#202124] leading-tight">
                       {item.title.slice(0, 60)}...
                     </h3>
-                    <p className="text-sm text-[#5f6368] mt-1">
-                      {timeAgo(item.createdAt)}
-                    </p>
-                  </Link>
+                    <p className="text-sm text-[#5f6368] mt-1">{timeAgo(item.createdAt)}</p>
+                  </div>
                 </div>
               ))}
             </aside>
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
