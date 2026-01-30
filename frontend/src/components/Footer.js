@@ -87,27 +87,29 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gray-100 text-black px-6 py-10">
+    <footer className="glass-panel mt-12 px-6 py-12 animate-fade-in text-white/80 border-t border-white/10">
       {/* Logo */}
-      <div className="mb-6 text-center">
-        <div className="flex justify-center items-center space-x-2 text-4xl font-serif font-bold">
-          <span>PUBLIC NEWS DROID</span>
+      <div className="mb-8 text-center">
+        <div className="flex justify-center items-center space-x-2">
+          <span className="text-4xl font-heading font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-stone-200 to-stone-400 tracking-wider">
+            PUBLIC NEWS DROID
+          </span>
         </div>
       </div>
 
       {/* Sectioned links */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-8 text-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-8 text-sm max-w-[1200px] mx-auto">
         {sections.map((sec, i) => (
           <div key={i}>
-            <h3 className="font-bold border-t-4 border-black inline-block pt-2">{sec.title}</h3>
-            <ul className="mt-2 space-y-1">
+            <h3 className="font-bold border-t-2 border-white/20 inline-block pt-2 mb-3 text-white">{sec.title}</h3>
+            <ul className="space-y-2">
               {sec.links.map((link, idx) => (
                 <li key={idx}>
-                  <a href="#" className="hover:underline">
+                  <a href="/" className="hover:text-amber-200 transition-colors text-white/60 hover:underline decoration-white/30">
                     {link}
                     {link.toLowerCase().includes("news") ||
-                    link.toLowerCase().includes("update") ? (
-                      <span className="text-red-600 ml-1">↗</span>
+                      link.toLowerCase().includes("update") ? (
+                      <span className="text-white/40 ml-1">↗</span>
                     ) : null}
                   </a>
                 </li>
@@ -115,11 +117,11 @@ const Footer = () => {
             </ul>
             {sec.extraTitle && (
               <>
-                <h3 className="font-bold mt-4">{sec.extraTitle}</h3>
-                <ul className="mt-1 space-y-1">
+                <h3 className="font-bold mt-4 text-white">{sec.extraTitle}</h3>
+                <ul className="mt-1 space-y-2">
                   {sec.extraLinks.map((link, idx) => (
                     <li key={idx}>
-                      <a href="#" className="hover:underline">
+                      <a href="/" className="hover:text-amber-200 transition-colors text-white/60 hover:underline decoration-white/30">
                         {link}
                       </a>
                     </li>
@@ -129,11 +131,11 @@ const Footer = () => {
             )}
             {sec.contact && (
               <>
-                <h3 className="font-bold mt-4">Contact us</h3>
-                <ul className="mt-1 space-y-1">
+                <h3 className="font-bold mt-4 text-white">Contact us</h3>
+                <ul className="mt-1 space-y-2">
                   {sec.contact.map((link, idx) => (
                     <li key={idx}>
-                      <a href="#" className="hover:underline font-semibold">
+                      <a href="/" className="hover:text-amber-200 transition-colors text-white/60 font-semibold">
                         {link}
                       </a>
                     </li>
@@ -146,16 +148,16 @@ const Footer = () => {
       </div>
 
       {/* App Store Buttons */}
-      <div className="mt-10 flex justify-center gap-4">
+      <div className="mt-12 flex justify-center gap-6 opacity-60 hover:opacity-100 transition-opacity">
         <img
           src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/512px-Google_Play_Store_badge_EN.svg.png"
           alt="Google Play"
-          className="h-10"
+          className="h-10 cursor-pointer"
         />
         <img
           src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"
           alt="App Store"
-          className="h-10"
+          className="h-10 cursor-pointer"
         />
       </div>
     </footer>

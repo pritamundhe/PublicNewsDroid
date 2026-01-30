@@ -3,8 +3,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        inter: ["Inter", "sans-serif"],
-        times: ['"Merriweather"', 'Times', 'serif'],
+        sans: ["Inter", "sans-serif"],
+        heading: ["Outfit", "sans-serif"],
+        serif: ['"Merriweather"', 'serif'],
       },
     },
   },

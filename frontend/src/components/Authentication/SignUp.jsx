@@ -51,7 +51,7 @@ export default function Signup() {
       requestForToken(response.data.userId);
       navigate("/login");
     } catch (error) {
-      console.log(error.response?.data?.message || "Registration failed.");
+      console.error(error.response?.data?.message || "Registration failed.");
     }
   };
 

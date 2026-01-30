@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-stone-900 min-h-screen text-stone-100 font-sans antialiased selection:bg-amber-500/30 selection:text-white;
+    position: relative;
+  }
+
+  body::before {
+    content: "https://www.pexels.com/download/video/31801604/";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    /* Video background will take over */
+    background-color: #292524;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading text-white;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .glass-panel {
+    @apply bg-[#4a4038]/20 backdrop-blur-2xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  }
+}
