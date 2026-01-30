@@ -45,3 +45,49 @@ Ensure you have the following installed:
    ```bash
    git clone https://github.com/pritamundhe/PublicNewsDroid.git
    cd PublicNewsDroid
+   ```
+
+2. Install dependencies for the backend:
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. Install dependencies for the frontend:
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+### Environment Variables
+
+Create a `.env` file in the `backend` directory and add the following:
+
+```env
+CLIENT_URL=http://localhost:3000
+REACT_APP_API_URL=http://localhost:5000/api
+MONGO_URL=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+TEXTRAZOR_API_KEY=your_textrazor_api_key
+HUGGINGFACE_API_KEY=your_huggingface_api_key
+OPENAI_API_KEY=your_openai_api_key
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+```
+
+### Running the Application
+
+1. Start the Backend server:
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+2. Start the Frontend application:
+   ```bash
+   cd frontend
+   npm start
+   ```
+
+3. Open your browser and navigate to `http://localhost:3000`.
